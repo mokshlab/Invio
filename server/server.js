@@ -8,6 +8,8 @@ import config from './config/index.js';
 import connectDB from './config/db.js';
 import { errorHandler, notFound } from './middleware/errorHandler.js';
 import authRoutes from './routes/authRoutes.js';
+import invoiceRoutes from './routes/invoiceRoutes.js';
+import profileRoutes from './routes/profileRoutes.js';
 
 const app = express();
 
@@ -40,6 +42,8 @@ if (config.nodeEnv === 'development') {
 
 // --------------- API Routes ---------------
 app.use('/api/auth', authRoutes);
+app.use('/api/invoices', invoiceRoutes);
+app.use('/api/profile', profileRoutes);
 
 // Health check endpoint
 app.get('/api/health', (req, res) => {
