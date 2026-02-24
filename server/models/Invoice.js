@@ -156,15 +156,15 @@ invoiceSchema.pre('validate', function (next) {
 });
 
 /**
- * Static method: generate next invoice number for a user.
+ * Static method: generate next invoice number globally.
  * Format: INV-YYYY-NNNN (e.g., INV-2026-0001)
  */
-invoiceSchema.statics.generateInvoiceNumber = async function (userId) {
+invoiceSchema.statics.generateInvoiceNumber = async function () {
   const year = new Date().getFullYear();
   const prefix = `INV-${year}-`;
 
   const lastInvoice = await this.findOne(
-    { user: userId, invoiceNumber: { $regex: `^${prefix}` } },
+    { invoiceNumber: { $regex: `^${prefix}` } },
     { invoiceNumber: 1 }
   ).sort({ invoiceNumber: -1 });
 

@@ -6,7 +6,7 @@ import AppError from '../utils/AppError.js';
 // @access  Private
 export const createInvoice = async (req, res, next) => {
   try {
-    const invoiceNumber = await Invoice.generateInvoiceNumber(req.user._id);
+    const invoiceNumber = await Invoice.generateInvoiceNumber();
 
     const invoice = await Invoice.create({
       ...req.body,
