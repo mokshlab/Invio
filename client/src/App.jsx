@@ -6,6 +6,10 @@ import Layout from './components/layout/Layout';
 import Login from './pages/Login';
 import Signup from './pages/Signup';
 import Dashboard from './pages/Dashboard';
+import Invoices from './pages/Invoices';
+import InvoiceForm from './pages/InvoiceForm';
+import InvoiceDetail from './pages/InvoiceDetail';
+import Profile from './pages/Profile';
 
 const App = () => {
   return (
@@ -32,7 +36,11 @@ const App = () => {
           <Route element={<ProtectedRoute />}>
             <Route element={<Layout />}>
               <Route path="/dashboard" element={<Dashboard />} />
-              {/* Day 2+: Invoice routes, AI routes, Profile */}
+              <Route path="/invoices" element={<Invoices />} />
+              <Route path="/invoices/new" element={<InvoiceForm />} />
+              <Route path="/invoices/:id" element={<InvoiceDetail />} />
+              <Route path="/invoices/:id/edit" element={<InvoiceForm />} />
+              <Route path="/profile" element={<Profile />} />
             </Route>
           </Route>
 
