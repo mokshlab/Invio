@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { invoiceService } from '../services/invoiceService';
-import { profileService } from '../services/profileService';
 import { Plus, Trash2, ArrowLeft, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
 import LoadingSpinner from '../components/common/LoadingSpinner';
