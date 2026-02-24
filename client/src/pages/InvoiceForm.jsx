@@ -1,0 +1,505 @@
+import { useState, useEffect } from 'react';
+import { useNavigate, useParams } from 'react-router-dom';
+import { invoiceService } from '../services/invoiceService';
+import { profileService } from '../services/profileService';
+import { Plus, Trash2, ArrowLeft, Save } from 'lucide-react';
+import toast from 'react-hot-toast';
+import LoadingSpinner from '../components/common/LoadingSpinner';
+
+const emptyItem = { description: '', quantity: 1, rate: 0, amount: 0 };
+
+const InvoiceForm = () => {
+  const { id } = useParams();
+  const navigate = useNavigate();
+  const isEditing = Boolean(id);
+
+  const [loading, setLoading] = useState(isEditing);
+  const [saving, setSaving] = useState(false);
+  const [errors, setErrors] = useState({});
+
+  const [form, setForm] = useState({
+    clientName: '',
+    clientEmail: '',
+    clientPhone: '',
+    clientAddress: '',
+    issueDate: new Date().toISOString().split('T')[0],
+    dueDate: '',
+    items: [{ ...emptyItem }],
+    taxRate: 0,
+    discount: 0,
+    notes: '',
+    terms: 'Payment is due within the specified due date.',
+    status: 'draft',
+  });
+
+  // Fetch invoice data if editing
+  useEffect(() => {
+    if (isEditing) {
+      (async () => {
+        try {
+          const { data } = await invoiceService.getById(id);
+          const inv = data.invoice;
+          setForm({
+            clientName: inv.clientName,
+            clientEmail: inv.clientEmail || '',
+            clientPhone: inv.clientPhone || '',
+            clientAddress: inv.clientAddress || '',
+            issueDate: new Date(inv.issueDate).toISOString().split('T')[0],
+            dueDate: new Date(inv.dueDate).toISOString().split('T')[0],
+            items: inv.items.length > 0 ? inv.items : [{ ...emptyItem }],
+            taxRate: inv.taxRate || 0,
+            discount: inv.discount || 0,
+            notes: inv.notes || '',
+            terms: inv.terms || '',
+            status: inv.status,
+          });
+        } catch {
+          toast.error('Invoice not found');
+          navigate('/invoices');
+        } finally {
+          setLoading(false);
+        }
+      })();
+    }
+  }, [id, isEditing, navigate]);
+
+  // Set default due date to 30 days from issue date
+  useEffect(() => {
+    if (!isEditing && !form.dueDate && form.issueDate) {
+      const due = new Date(form.issueDate);
+      due.setDate(due.getDate() + 30);
+      setForm((prev) => ({ ...prev, dueDate: due.toISOString().split('T')[0] }));
+    }
+  }, [form.issueDate, form.dueDate, isEditing]);
+
+  // ---- Handlers ----
+
+  const handleChange = (e) => {
+    const { name, value } = e.target;
+    setForm((prev) => ({ ...prev, [name]: value }));
+    if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
+  };
+
+  const handleItemChange = (index, field, value) => {
+    setForm((prev) => {
+      const items = [...prev.items];
+      items[index] = { ...items[index], [field]: value };
+
+      // Recalculate line amount
+      if (field === 'quantity' || field === 'rate') {
+        const qty = field === 'quantity' ? parseFloat(value) || 0 : parseFloat(items[index].quantity) || 0;
+        const rate = field === 'rate' ? parseFloat(value) || 0 : parseFloat(items[index].rate) || 0;
+        items[index].amount = qty * rate;
+      }
+
+      return { ...prev, items };
+    });
+  };
+
+  const addItem = () => {
+    setForm((prev) => ({ ...prev, items: [...prev.items, { ...emptyItem }] }));
+  };
+
+  const removeItem = (index) => {
+    if (form.items.length <= 1) return;
+    setForm((prev) => ({
+      ...prev,
+      items: prev.items.filter((_, i) => i !== index),
+    }));
+  };
+
+  // ---- Calculations ----
+  const subtotal = form.items.reduce(
+    (sum, item) => sum + (parseFloat(item.quantity) || 0) * (parseFloat(item.rate) || 0),
+    0
+  );
+  const taxAmount = (subtotal * (parseFloat(form.taxRate) || 0)) / 100;
+  const total = subtotal + taxAmount - (parseFloat(form.discount) || 0);
+
+  const formatCurrency = (v) =>
+    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(v);
+
+  // ---- Validation ----
+  const validate = () => {
+    const errs = {};
+    if (!form.clientName.trim()) errs.clientName = 'Client name is required';
+    if (!form.dueDate) errs.dueDate = 'Due date is required';
+    if (form.items.some((item) => !item.description.trim())) {
+      errs.items = 'All items need a description';
+    }
+    if (form.items.some((item) => parseFloat(item.quantity) <= 0)) {
+      errs.items = 'Quantity must be greater than 0';
+    }
+    setErrors(errs);
+    return Object.keys(errs).length === 0;
+  };
+
+  // ---- Submit ----
+  const handleSubmit = async (status) => {
+    if (!validate()) return;
+
+    setSaving(true);
+    try {
+      const payload = {
+        ...form,
+        status: status || form.status,
+        items: form.items.map((item) => ({
+          description: item.description,
+          quantity: parseFloat(item.quantity),
+          rate: parseFloat(item.rate),
+          amount: parseFloat(item.quantity) * parseFloat(item.rate),
+        })),
+        taxRate: parseFloat(form.taxRate) || 0,
+        discount: parseFloat(form.discount) || 0,
+      };
+
+      if (isEditing) {
+        await invoiceService.update(id, payload);
+        toast.success('Invoice updated');
+      } else {
+        await invoiceService.create(payload);
+        toast.success('Invoice created');
+      }
+      navigate('/invoices');
+    } catch (error) {
+      toast.error(error.response?.data?.message || 'Failed to save invoice');
+    } finally {
+      setSaving(false);
+    }
+  };
+
+  if (loading) return <LoadingSpinner />;
+
+  return (
+    <div className="max-w-4xl mx-auto">
+      {/* Header */}
+      <div className="flex items-center gap-4 mb-6">
+        <button
+          onClick={() => navigate('/invoices')}
+          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+        >
+          <ArrowLeft className="w-5 h-5" />
+        </button>
+        <div>
+          <h1 className="text-2xl font-bold text-gray-900">
+            {isEditing ? 'Edit Invoice' : 'New Invoice'}
+          </h1>
+          <p className="text-gray-500 text-sm mt-0.5">
+            {isEditing ? 'Update invoice details' : 'Fill in the details to create an invoice'}
+          </p>
+        </div>
+      </div>
+
+      {/* Client Details */}
+      <div className="card mb-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Client Details</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Client Name <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="text"
+              name="clientName"
+              value={form.clientName}
+              onChange={handleChange}
+              className={`input-field ${errors.clientName ? 'border-red-300' : ''}`}
+              placeholder="Company / Client name"
+            />
+            {errors.clientName && (
+              <p className="text-sm text-red-500 mt-1">{errors.clientName}</p>
+            )}
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Client Email
+            </label>
+            <input
+              type="email"
+              name="clientEmail"
+              value={form.clientEmail}
+              onChange={handleChange}
+              className="input-field"
+              placeholder="client@example.com"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Phone
+            </label>
+            <input
+              type="text"
+              name="clientPhone"
+              value={form.clientPhone}
+              onChange={handleChange}
+              className="input-field"
+              placeholder="+1 (555) 000-0000"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Address
+            </label>
+            <input
+              type="text"
+              name="clientAddress"
+              value={form.clientAddress}
+              onChange={handleChange}
+              className="input-field"
+              placeholder="123 Main St, City, State"
+            />
+          </div>
+        </div>
+      </div>
+
+      {/* Dates */}
+      <div className="card mb-6">
+        <h2 className="text-lg font-semibold text-gray-900 mb-4">Invoice Dates</h2>
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Issue Date
+            </label>
+            <input
+              type="date"
+              name="issueDate"
+              value={form.issueDate}
+              onChange={handleChange}
+              className="input-field"
+            />
+          </div>
+          <div>
+            <label className="block text-sm font-medium text-gray-700 mb-1">
+              Due Date <span className="text-red-500">*</span>
+            </label>
+            <input
+              type="date"
+              name="dueDate"
+              value={form.dueDate}
+              onChange={handleChange}
+              className={`input-field ${errors.dueDate ? 'border-red-300' : ''}`}
+            />
+            {errors.dueDate && (
+              <p className="text-sm text-red-500 mt-1">{errors.dueDate}</p>
+            )}
+          </div>
+        </div>
+      </div>
+
+      {/* Line Items */}
+      <div className="card mb-6">
+        <div className="flex items-center justify-between mb-4">
+          <h2 className="text-lg font-semibold text-gray-900">Items</h2>
+          <button
+            type="button"
+            onClick={addItem}
+            className="flex items-center gap-1 text-sm text-primary-600 hover:text-primary-700 font-medium"
+          >
+            <Plus className="w-4 h-4" />
+            Add Item
+          </button>
+        </div>
+
+        {errors.items && (
+          <p className="text-sm text-red-500 mb-3">{errors.items}</p>
+        )}
+
+        {/* Table header (desktop) */}
+        <div className="hidden md:grid grid-cols-12 gap-3 mb-2 text-xs font-medium text-gray-500 uppercase">
+          <div className="col-span-5">Description</div>
+          <div className="col-span-2">Quantity</div>
+          <div className="col-span-2">Rate</div>
+          <div className="col-span-2 text-right">Amount</div>
+          <div className="col-span-1" />
+        </div>
+
+        <div className="space-y-3">
+          {form.items.map((item, index) => (
+            <div key={index} className="grid grid-cols-12 gap-3 items-start">
+              <div className="col-span-12 md:col-span-5">
+                <input
+                  type="text"
+                  value={item.description}
+                  onChange={(e) => handleItemChange(index, 'description', e.target.value)}
+                  className="input-field text-sm"
+                  placeholder="Item description"
+                />
+              </div>
+              <div className="col-span-4 md:col-span-2">
+                <input
+                  type="number"
+                  value={item.quantity}
+                  onChange={(e) => handleItemChange(index, 'quantity', e.target.value)}
+                  className="input-field text-sm"
+                  placeholder="Qty"
+                  min="0.01"
+                  step="any"
+                />
+              </div>
+              <div className="col-span-4 md:col-span-2">
+                <input
+                  type="number"
+                  value={item.rate}
+                  onChange={(e) => handleItemChange(index, 'rate', e.target.value)}
+                  className="input-field text-sm"
+                  placeholder="Rate"
+                  min="0"
+                  step="any"
+                />
+              </div>
+              <div className="col-span-3 md:col-span-2 flex items-center justify-end h-[42px]">
+                <span className="text-sm font-medium text-gray-900">
+                  {formatCurrency(
+                    (parseFloat(item.quantity) || 0) * (parseFloat(item.rate) || 0)
+                  )}
+                </span>
+              </div>
+              <div className="col-span-1 flex items-center justify-center h-[42px]">
+                <button
+                  type="button"
+                  onClick={() => removeItem(index)}
+                  disabled={form.items.length <= 1}
+                  className="p-1.5 text-gray-400 hover:text-red-500 disabled:opacity-30 transition-colors"
+                >
+                  <Trash2 className="w-4 h-4" />
+                </button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* Summary + Notes */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
+        {/* Notes & Terms */}
+        <div className="card">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+            Notes & Terms
+          </h2>
+          <div className="space-y-4">
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Notes
+              </label>
+              <textarea
+                name="notes"
+                value={form.notes}
+                onChange={handleChange}
+                rows={3}
+                className="input-field resize-none"
+                placeholder="Additional notes for the client..."
+              />
+            </div>
+            <div>
+              <label className="block text-sm font-medium text-gray-700 mb-1">
+                Terms
+              </label>
+              <textarea
+                name="terms"
+                value={form.terms}
+                onChange={handleChange}
+                rows={2}
+                className="input-field resize-none"
+                placeholder="Payment terms..."
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Financial summary */}
+        <div className="card">
+          <h2 className="text-lg font-semibold text-gray-900 mb-4">Summary</h2>
+          <div className="space-y-3">
+            <div className="flex justify-between text-sm">
+              <span className="text-gray-500">Subtotal</span>
+              <span className="font-medium text-gray-900">
+                {formatCurrency(subtotal)}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500">Tax</span>
+                <input
+                  type="number"
+                  name="taxRate"
+                  value={form.taxRate}
+                  onChange={handleChange}
+                  className="w-16 px-2 py-1 border border-gray-300 rounded text-sm text-center"
+                  min="0"
+                  max="100"
+                />
+                <span className="text-gray-500">%</span>
+              </div>
+              <span className="font-medium text-gray-900">
+                {formatCurrency(taxAmount)}
+              </span>
+            </div>
+
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-2">
+                <span className="text-gray-500">Discount</span>
+                <span className="text-gray-400">$</span>
+                <input
+                  type="number"
+                  name="discount"
+                  value={form.discount}
+                  onChange={handleChange}
+                  className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                  min="0"
+                />
+              </div>
+              <span className="font-medium text-red-500">
+                -{formatCurrency(parseFloat(form.discount) || 0)}
+              </span>
+            </div>
+
+            <div className="border-t border-gray-200 pt-3 flex justify-between">
+              <span className="font-semibold text-gray-900">Total</span>
+              <span className="text-xl font-bold text-gray-900">
+                {formatCurrency(total > 0 ? total : 0)}
+              </span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Actions */}
+      <div className="flex flex-col sm:flex-row gap-3 justify-end mb-8">
+        <button
+          type="button"
+          onClick={() => navigate('/invoices')}
+          className="btn-secondary"
+        >
+          Cancel
+        </button>
+        <button
+          type="button"
+          onClick={() => handleSubmit('draft')}
+          disabled={saving}
+          className="btn-secondary flex items-center gap-2"
+        >
+          <Save className="w-4 h-4" />
+          Save as Draft
+        </button>
+        <button
+          type="button"
+          onClick={() => handleSubmit('sent')}
+          disabled={saving}
+          className="btn-primary flex items-center gap-2"
+        >
+          {saving ? (
+            <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+          ) : (
+            <>
+              <Save className="w-4 h-4" />
+              {isEditing ? 'Update & Send' : 'Create & Send'}
+            </>
+          )}
+        </button>
+      </div>
+    </div>
+  );
+};
+
+export default InvoiceForm;
