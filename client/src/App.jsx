@@ -10,6 +10,7 @@ import Invoices from './pages/Invoices';
 import InvoiceForm from './pages/InvoiceForm';
 import InvoiceDetail from './pages/InvoiceDetail';
 import Profile from './pages/Profile';
+import AICreator from './pages/AICreator';
 
 const App = () => {
   return (
@@ -41,6 +42,7 @@ const App = () => {
               <Route path="/invoices/:id" element={<InvoiceDetail />} />
               <Route path="/invoices/:id/edit" element={<InvoiceForm />} />
               <Route path="/profile" element={<Profile />} />
+              <Route path="/ai-creator" element={<AICreator />} />
             </Route>
           </Route>
 
