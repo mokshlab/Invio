@@ -32,7 +32,11 @@ export const getInvoices = async (req, res, next) => {
     // Build filter
     const filter = { user: req.user._id };
     if (status && status !== 'all') {
-      filter.status = status;
+      if (status.includes(',')) {
+        filter.status = { $in: status.split(',') };
+      } else {
+        filter.status = status;
+      }
     }
     if (search) {
       filter.$or = [
