@@ -14,6 +14,7 @@ import {
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import { downloadInvoicePDF } from '../utils/pdfExport';
 
 const STATUS_CONFIG = {
   draft: { label: 'Draft', color: 'bg-gray-100 text-gray-700', icon: Clock },
@@ -121,7 +122,21 @@ const InvoiceDetail = () => {
             className="btn-secondary flex items-center gap-2 text-sm"
           >
             <Printer className="w-4 h-4" />
-            Print
+            <span className="hidden sm:inline">Print</span>
+          </button>
+          <button
+            onClick={async () => {
+              try {
+                await downloadInvoicePDF('invoice-print', invoice.invoiceNumber || 'invoice');
+                toast.success('PDF downloaded!');
+              } catch {
+                toast.error('Failed to generate PDF');
+              }
+            }}
+            className="btn-secondary flex items-center gap-2 text-sm"
+          >
+            <Download className="w-4 h-4" />
+            <span className="hidden sm:inline">PDF</span>
           </button>
           <button
             onClick={() => setShowDeleteConfirm(true)}
@@ -135,11 +150,11 @@ const InvoiceDetail = () => {
       {/* Delete confirmation */}
       {showDeleteConfirm && (
         <div className="card mb-6 border-red-200 bg-red-50">
-          <div className="flex items-center justify-between">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
             <p className="text-sm text-red-700">
               Are you sure you want to delete this invoice? This action cannot be undone.
             </p>
-            <div className="flex gap-2 ml-4">
+            <div className="flex gap-2 flex-shrink-0">
               <button
                 onClick={() => setShowDeleteConfirm(false)}
                 className="btn-secondary text-sm py-1.5 px-3"
