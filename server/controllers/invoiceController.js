@@ -155,7 +155,7 @@ export const getInvoiceStats = async (req, res, next) => {
   try {
     const userId = req.user._id;
 
-    const [statusStats, monthlyRevenue, recentInvoices] = await Promise.all([
+    const [statusStats, monthlyRevenue, recentInvoices, topClients] = await Promise.all([
       // Aggregate by status
       Invoice.aggregate([
         { $match: { user: userId } },
@@ -197,6 +197,21 @@ export const getInvoiceStats = async (req, res, next) => {
         .sort({ createdAt: -1 })
         .limit(5)
         .select('invoiceNumber clientName total status createdAt dueDate'),
+
+      // Top 5 clients by total revenue
+      Invoice.aggregate([
+        { $match: { user: userId } },
+        {
+          $group: {
+            _id: '$clientName',
+            totalRevenue: { $sum: '$total' },
+            invoiceCount: { $sum: 1 },
+            email: { $first: '$clientEmail' },
+          },
+        },
+        { $sort: { totalRevenue: -1 } },
+        { $limit: 5 },
+      ]),
     ]);
 
     // Calculate totals from status stats
@@ -215,6 +230,7 @@ export const getInvoiceStats = async (req, res, next) => {
         pendingAmount,
         statusBreakdown: statusStats,
         monthlyRevenue,
+        topClients,
       },
       recentInvoices,
     });
