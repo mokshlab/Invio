@@ -8,6 +8,7 @@ import {
   Printer,
   Download,
   Mail,
+  Send,
   CheckCircle,
   Clock,
   AlertTriangle,
@@ -29,6 +30,7 @@ const InvoiceDetail = () => {
   const [invoice, setInvoice] = useState(null);
   const [loading, setLoading] = useState(true);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
+  const [sending, setSending] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -87,13 +89,13 @@ const InvoiceDetail = () => {
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate('/invoices')}
-            className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+            className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
           </button>
           <div>
             <div className="flex items-center gap-3">
-              <h1 className="text-2xl font-bold text-gray-900">
+              <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
                 {invoice.invoiceNumber}
               </h1>
               <span
@@ -103,7 +105,7 @@ const InvoiceDetail = () => {
                 {statusCfg.label}
               </span>
             </div>
-            <p className="text-gray-500 text-sm mt-0.5">
+            <p className="text-gray-500 dark:text-gray-400 text-sm mt-0.5">
               Created on {formatDate(invoice.createdAt)}
             </p>
           </div>
@@ -138,6 +140,31 @@ const InvoiceDetail = () => {
             <Download className="w-4 h-4" />
             <span className="hidden sm:inline">PDF</span>
           </button>
+          {invoice.clientEmail && (
+            <button
+              onClick={async () => {
+                setSending(true);
+                try {
+                  const { data } = await invoiceService.sendEmail(id);
+                  toast.success(data.message);
+                  if (data.invoice) setInvoice(data.invoice);
+                } catch (err) {
+                  toast.error(err.response?.data?.message || 'Failed to send email');
+                } finally {
+                  setSending(false);
+                }
+              }}
+              disabled={sending}
+              className="btn-primary flex items-center gap-2 text-sm"
+            >
+              {sending ? (
+                <div className="w-4 h-4 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+              ) : (
+                <Send className="w-4 h-4" />
+              )}
+              <span className="hidden sm:inline">{sending ? 'Sending...' : 'Email'}</span>
+            </button>
+          )}
           <button
             onClick={() => setShowDeleteConfirm(true)}
             className="btn-danger flex items-center gap-2 text-sm"
@@ -149,9 +176,9 @@ const InvoiceDetail = () => {
 
       {/* Delete confirmation */}
       {showDeleteConfirm && (
-        <div className="card mb-6 border-red-200 bg-red-50">
+        <div className="card mb-6 border-red-200 dark:border-red-800 bg-red-50 dark:bg-red-900/20">
           <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-            <p className="text-sm text-red-700">
+            <p className="text-sm text-red-700 dark:text-red-400">
               Are you sure you want to delete this invoice? This action cannot be undone.
             </p>
             <div className="flex gap-2 flex-shrink-0">
@@ -176,7 +203,7 @@ const InvoiceDetail = () => {
       {invoice.status !== 'paid' && (
         <div className="card mb-6">
           <div className="flex flex-wrap items-center gap-2">
-            <span className="text-sm text-gray-600 mr-2">Change status:</span>
+            <span className="text-sm text-gray-600 dark:text-gray-400 mr-2">Change status:</span>
             {invoice.status === 'draft' && (
               <button
                 onClick={() => handleStatusChange('sent')}
