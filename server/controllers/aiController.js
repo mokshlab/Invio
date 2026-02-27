@@ -6,6 +6,7 @@ import {
 import Invoice from '../models/Invoice.js';
 import User from '../models/User.js';
 import AppError from '../utils/AppError.js';
+import { sendEmail, buildReminderEmail } from '../services/emailService.js';
 
 // @desc    AI: Generate invoice from client text/email
 // @route   POST /api/ai/generate-invoice
@@ -185,6 +186,43 @@ export const aiInsights = async (req, res, next) => {
     if (error instanceof SyntaxError) {
       return next(new AppError('AI returned an invalid response. Please try again.', 502));
     }
+    next(error);
+  }
+};
+
+// @desc    Send AI-generated payment reminder via email
+// @route   POST /api/ai/send-reminder
+// @access  Private
+export const sendReminderEmail = async (req, res, next) => {
+  try {
+    const { invoiceId, reminderText } = req.body;
+
+    if (!invoiceId || !reminderText) {
+      throw new AppError('Invoice ID and reminder text are required.', 400);
+    }
+
+    const invoice = await Invoice.findOne({
+      _id: invoiceId,
+      user: req.user._id,
+    });
+
+    if (!invoice) throw new AppError('Invoice not found.', 404);
+    if (!invoice.clientEmail) {
+      throw new AppError('Client email is required to send a reminder.', 400);
+    }
+
+    const senderName = req.user.businessName || req.user.name;
+    const { subject, html } = buildReminderEmail(invoice, reminderText, senderName);
+
+    const result = await sendEmail({ to: invoice.clientEmail, subject, html });
+
+    res.json({
+      message: result.preview
+        ? 'Reminder previewed (SMTP not configured)'
+        : `Reminder sent to ${invoice.clientEmail}`,
+      preview: result.preview || false,
+    });
+  } catch (error) {
     next(error);
   }
 };
