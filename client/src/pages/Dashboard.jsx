@@ -164,10 +164,10 @@ const Dashboard = () => {
       {/* Greeting */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             Welcome back, {user?.name?.split(' ')[0] || 'there'}!
           </h1>
-          <p className="text-gray-500 mt-1">
+          <p className="text-gray-500 dark:text-gray-400 mt-1">
             Here&apos;s an overview of your invoicing activity.
           </p>
         </div>
@@ -197,8 +197,8 @@ const Dashboard = () => {
                 <stat.icon className="w-5 h-5" />
               </div>
             </div>
-            <p className="text-xl sm:text-2xl font-bold text-gray-900">{stat.value}</p>
-            <p className="text-xs sm:text-sm text-gray-500 mt-1">{stat.label}</p>
+            <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">{stat.value}</p>
+            <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">{stat.label}</p>
           </motion.div>
         ))}
       </div>
@@ -207,11 +207,11 @@ const Dashboard = () => {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Revenue bar chart — spans 2 cols */}
         <div className="card lg:col-span-2">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
             Monthly Revenue
           </h2>
           {revenueChartData.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-64 text-gray-400">
+            <div className="flex flex-col items-center justify-center h-64 text-gray-400 dark:text-gray-500">
               <TrendingUp className="w-12 h-12 mb-3 stroke-1" />
               <p className="text-sm">No paid invoices yet</p>
               <p className="text-xs mt-1">Revenue chart will appear here</p>
@@ -249,11 +249,11 @@ const Dashboard = () => {
 
         {/* Status pie chart */}
         <div className="card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
             Status Breakdown
           </h2>
           {pieData.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-64 text-gray-400">
+            <div className="flex flex-col items-center justify-center h-64 text-gray-400 dark:text-gray-500">
               <FileText className="w-12 h-12 mb-3 stroke-1" />
               <p className="text-sm">No data available</p>
             </div>
@@ -298,7 +298,7 @@ const Dashboard = () => {
         {/* Recent Invoices */}
         <div className="card">
           <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-gray-900">
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">
               Recent Invoices
             </h2>
             {recentInvoices.length > 0 && (
@@ -312,7 +312,7 @@ const Dashboard = () => {
           </div>
 
           {recentInvoices.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-gray-400">
+            <div className="flex flex-col items-center justify-center py-8 text-gray-400 dark:text-gray-500">
               <FileText className="w-12 h-12 mb-3 stroke-1" />
               <p className="text-sm">No invoices yet</p>
               <p className="text-xs mt-1">
@@ -325,23 +325,23 @@ const Dashboard = () => {
                 <div
                   key={inv._id}
                   onClick={() => navigate(`/invoices/${inv._id}`)}
-                  className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 cursor-pointer transition-colors"
+                  className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 cursor-pointer transition-colors"
                 >
                   <div className="flex items-center gap-3 min-w-0">
-                    <div className="w-9 h-9 bg-gray-100 rounded-lg flex items-center justify-center flex-shrink-0">
-                      <FileText className="w-4 h-4 text-gray-500" />
+                    <div className="w-9 h-9 bg-gray-100 dark:bg-gray-700 rounded-lg flex items-center justify-center flex-shrink-0">
+                      <FileText className="w-4 h-4 text-gray-500 dark:text-gray-400" />
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                         {inv.clientName}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
                         {inv.invoiceNumber}
                       </p>
                     </div>
                   </div>
                   <div className="text-right flex-shrink-0 ml-2">
-                    <p className="text-sm font-semibold text-gray-900">
+                    <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">
                       {fmt(inv.total)}
                     </p>
                     <span
@@ -360,11 +360,11 @@ const Dashboard = () => {
 
         {/* Top Clients */}
         <div className="card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
             Top Clients
           </h2>
           {topClients.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-gray-400">
+            <div className="flex flex-col items-center justify-center py-8 text-gray-400 dark:text-gray-500">
               <Users className="w-12 h-12 mb-3 stroke-1" />
               <p className="text-sm">No client data yet</p>
               <p className="text-xs mt-1">Clients will appear as you create invoices</p>
@@ -374,7 +374,7 @@ const Dashboard = () => {
               {topClients.map((client, i) => (
                 <div
                   key={i}
-                  className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 transition-colors"
+                  className="flex items-center justify-between p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800 transition-colors"
                 >
                   <div className="flex items-center gap-3 min-w-0">
                     <div className="w-9 h-9 bg-primary-50 rounded-full flex items-center justify-center flex-shrink-0">
@@ -383,15 +383,15 @@ const Dashboard = () => {
                       </span>
                     </div>
                     <div className="min-w-0">
-                      <p className="text-sm font-medium text-gray-900 truncate">
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100 truncate">
                         {client._id}
                       </p>
-                      <p className="text-xs text-gray-500">
+                      <p className="text-xs text-gray-500 dark:text-gray-400">
                         {client.invoiceCount} invoice{client.invoiceCount !== 1 ? 's' : ''}
                       </p>
                     </div>
                   </div>
-                  <p className="text-sm font-semibold text-gray-900 flex-shrink-0 ml-2">
+                  <p className="text-sm font-semibold text-gray-900 dark:text-gray-100 flex-shrink-0 ml-2">
                     {fmt(client.totalRevenue)}
                   </p>
                 </div>
@@ -406,7 +406,7 @@ const Dashboard = () => {
         <div className="flex items-center justify-between mb-4">
           <div className="flex items-center gap-2">
             <Sparkles className="w-5 h-5 text-primary-600" />
-            <h2 className="text-lg font-semibold text-gray-900">AI Insights</h2>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">AI Insights</h2>
           </div>
           <button
             onClick={fetchInsights}
@@ -429,7 +429,7 @@ const Dashboard = () => {
 
         {/* Not loaded yet */}
         {!insights && !insightsLoading && !insightsError && (
-          <div className="flex flex-col items-center justify-center py-8 text-gray-400">
+          <div className="flex flex-col items-center justify-center py-8 text-gray-400 dark:text-gray-500">
             <Sparkles className="w-12 h-12 mb-3 stroke-1" />
             <p className="text-sm">Click &quot;Generate&quot; to get AI-powered business insights</p>
             <p className="text-xs mt-1">Requires at least 2 invoices</p>
@@ -446,10 +446,10 @@ const Dashboard = () => {
         {/* Loading shimmer */}
         {insightsLoading && (
           <div className="space-y-3 animate-pulse">
-            <div className="h-4 w-3/4 bg-gray-200 rounded" />
-            <div className="h-4 w-1/2 bg-gray-200 rounded" />
-            <div className="h-4 w-2/3 bg-gray-200 rounded" />
-            <div className="h-4 w-1/3 bg-gray-200 rounded" />
+            <div className="h-4 w-3/4 bg-gray-200 dark:bg-gray-700 rounded" />
+            <div className="h-4 w-1/2 bg-gray-200 dark:bg-gray-700 rounded" />
+            <div className="h-4 w-2/3 bg-gray-200 dark:bg-gray-700 rounded" />
+            <div className="h-4 w-1/3 bg-gray-200 dark:bg-gray-700 rounded" />
           </div>
         )}
 
@@ -462,7 +462,7 @@ const Dashboard = () => {
           >
             {/* Revenue Trend */}
             {insights.revenueTrend && (
-              <div className="bg-gray-50 rounded-xl p-4">
+              <div className="bg-gray-50 dark:bg-gray-950 rounded-xl p-4">
                 <div className="flex items-center gap-2 mb-2">
                   <TrendingUp
                     className={`w-4 h-4 ${
@@ -473,7 +473,7 @@ const Dashboard = () => {
                         : 'text-gray-400'
                     }`}
                   />
-                  <span className="text-sm font-semibold text-gray-900">Revenue Trend</span>
+                  <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">Revenue Trend</span>
                   {insights.revenueTrend.percentage && (
                     <span
                       className={`text-xs font-medium ${
@@ -486,7 +486,7 @@ const Dashboard = () => {
                     </span>
                   )}
                 </div>
-                <p className="text-xs text-gray-600 leading-relaxed line-clamp-3">
+                <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed line-clamp-3">
                   {insights.revenueTrend.summary}
                 </p>
               </div>
@@ -494,9 +494,9 @@ const Dashboard = () => {
 
             {/* Payment Health */}
             {insights.paymentHealth && (
-              <div className="bg-gray-50 rounded-xl p-4">
+              <div className="bg-gray-50 dark:bg-gray-950 rounded-xl p-4">
                 <div className="flex items-center justify-between mb-2">
-                  <span className="text-sm font-semibold text-gray-900">Payment Health</span>
+                  <span className="text-sm font-semibold text-gray-900 dark:text-gray-100">Payment Health</span>
                   <span
                     className={`text-lg font-bold ${
                       insights.paymentHealth.score >= 7
@@ -509,7 +509,7 @@ const Dashboard = () => {
                     {insights.paymentHealth.score}/10
                   </span>
                 </div>
-                <p className="text-xs text-gray-600 leading-relaxed line-clamp-3">
+                <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed line-clamp-3">
                   {insights.paymentHealth.summary}
                 </p>
               </div>
@@ -517,14 +517,14 @@ const Dashboard = () => {
 
             {/* Top Recommendation */}
             {insights.recommendations?.length > 0 && (
-              <div className="bg-gray-50 rounded-xl p-4">
-                <span className="text-sm font-semibold text-gray-900 block mb-2">
+              <div className="bg-gray-50 dark:bg-gray-950 rounded-xl p-4">
+                <span className="text-sm font-semibold text-gray-900 dark:text-gray-100 block mb-2">
                   Top Recommendation
                 </span>
                 <p className="text-xs font-medium text-primary-700 mb-1">
                   {insights.recommendations[0].title}
                 </p>
-                <p className="text-xs text-gray-600 leading-relaxed line-clamp-3">
+                <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed line-clamp-3">
                   {insights.recommendations[0].description}
                 </p>
               </div>
