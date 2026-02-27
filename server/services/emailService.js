@@ -7,6 +7,19 @@
 import nodemailer from 'nodemailer';
 import config from '../config/index.js';
 
+/**
+ * Escape HTML special characters to prevent XSS in email templates.
+ * @param {string} str — untrusted user input
+ * @returns {string} safe HTML string
+ */
+const escapeHtml = (str) =>
+  String(str ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#039;');
+
 // ────────────────────────────────────────────────
 // Lazy-initialised SMTP transporter.
 // Falls back to a "preview-only" mode when SMTP
@@ -85,12 +98,16 @@ export const buildInvoiceEmail = (invoice, senderName) => {
   const fmtDate = (d) =>
     new Date(d).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' });
 
+  const safeSender = escapeHtml(senderName);
+  const safeClient = escapeHtml(invoice.clientName);
+  const safeNotes = escapeHtml(invoice.notes);
+
   const itemsRows = invoice.items
     .map(
       (item, i) => `
         <tr>
           <td style="padding:8px;border-bottom:1px solid #e5e7eb">${i + 1}</td>
-          <td style="padding:8px;border-bottom:1px solid #e5e7eb">${item.description}</td>
+          <td style="padding:8px;border-bottom:1px solid #e5e7eb">${escapeHtml(item.description)}</td>
           <td style="padding:8px;border-bottom:1px solid #e5e7eb;text-align:right">${item.quantity}</td>
           <td style="padding:8px;border-bottom:1px solid #e5e7eb;text-align:right">${fmtCurrency(item.rate)}</td>
           <td style="padding:8px;border-bottom:1px solid #e5e7eb;text-align:right;font-weight:600">${fmtCurrency(item.amount)}</td>
@@ -102,11 +119,11 @@ export const buildInvoiceEmail = (invoice, senderName) => {
     <div style="font-family:'Inter',system-ui,sans-serif;max-width:600px;margin:0 auto;color:#1f2937">
       <div style="background:linear-gradient(135deg,#4f46e5,#7c3aed);padding:32px;border-radius:12px 12px 0 0;text-align:center">
         <h1 style="color:#fff;margin:0;font-size:24px">Invoice ${invoice.invoiceNumber}</h1>
-        <p style="color:rgba(255,255,255,.8);margin:8px 0 0;font-size:14px">from ${senderName}</p>
+        <p style="color:rgba(255,255,255,.8);margin:8px 0 0;font-size:14px">from ${safeSender}</p>
       </div>
       <div style="padding:24px;background:#fff;border:1px solid #e5e7eb;border-top:none">
         <p style="margin:0 0 4px;font-size:14px;color:#6b7280">Bill To</p>
-        <p style="margin:0 0 16px;font-weight:600">${invoice.clientName}</p>
+        <p style="margin:0 0 16px;font-weight:600">${safeClient}</p>
         <table style="width:100%;font-size:13px;color:#6b7280;margin-bottom:16px">
           <tr>
             <td>Issue Date: <strong style="color:#1f2937">${fmtDate(invoice.issueDate)}</strong></td>
@@ -131,14 +148,14 @@ export const buildInvoiceEmail = (invoice, senderName) => {
           ${invoice.discount > 0 ? `<p style="margin:4px 0;color:#ef4444">Discount: -${fmtCurrency(invoice.discount)}</p>` : ''}
           <p style="margin:8px 0 0;font-size:20px;font-weight:700;color:#1f2937">Total: ${fmtCurrency(invoice.total)}</p>
         </div>
-        ${invoice.notes ? `<div style="margin-top:20px;padding:12px;background:#f9fafb;border-radius:8px;font-size:13px;color:#6b7280"><strong>Notes:</strong> ${invoice.notes}</div>` : ''}
+        ${invoice.notes ? `<div style="margin-top:20px;padding:12px;background:#f9fafb;border-radius:8px;font-size:13px;color:#6b7280"><strong>Notes:</strong> ${safeNotes}</div>` : ''}
       </div>
       <div style="padding:16px;text-align:center;font-size:12px;color:#9ca3af;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px">
         Sent via <strong>Invio</strong> — AI-Powered Invoice Management
       </div>
     </div>`;
 
-  const subject = `Invoice ${invoice.invoiceNumber} from ${senderName}`;
+  const subject = `Invoice ${invoice.invoiceNumber} from ${senderName}`; // subject is plain text, no escape needed
   return { subject, html };
 };
 
@@ -146,14 +163,15 @@ export const buildInvoiceEmail = (invoice, senderName) => {
  * Build a payment reminder email.
  */
 export const buildReminderEmail = (invoice, reminderText, senderName) => {
+  const safeReminder = escapeHtml(reminderText);
   const subject = `Payment Reminder: Invoice ${invoice.invoiceNumber}`;
   const html = `
     <div style="font-family:'Inter',system-ui,sans-serif;max-width:600px;margin:0 auto;color:#1f2937">
       <div style="background:linear-gradient(135deg,#f59e0b,#ef4444);padding:24px;border-radius:12px 12px 0 0;text-align:center">
         <h1 style="color:#fff;margin:0;font-size:20px">Payment Reminder</h1>
-        <p style="color:rgba(255,255,255,.8);margin:6px 0 0;font-size:14px">${invoice.invoiceNumber}</p>
+        <p style="color:rgba(255,255,255,.8);margin:6px 0 0;font-size:14px">${escapeHtml(invoice.invoiceNumber)}</p>
       </div>
-      <div style="padding:24px;background:#fff;border:1px solid #e5e7eb;border-top:none;font-size:14px;line-height:1.7;white-space:pre-wrap">${reminderText}</div>
+      <div style="padding:24px;background:#fff;border:1px solid #e5e7eb;border-top:none;font-size:14px;line-height:1.7;white-space:pre-wrap">${safeReminder}</div>
       <div style="padding:16px;text-align:center;font-size:12px;color:#9ca3af;border:1px solid #e5e7eb;border-top:none;border-radius:0 0 12px 12px">
         Sent via <strong>Invio</strong> — AI-Powered Invoice Management
       </div>
