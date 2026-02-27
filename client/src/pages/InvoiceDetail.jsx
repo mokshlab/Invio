@@ -18,10 +18,10 @@ import LoadingSpinner from '../components/common/LoadingSpinner';
 import { downloadInvoicePDF } from '../utils/pdfExport';
 
 const STATUS_CONFIG = {
-  draft: { label: 'Draft', color: 'bg-gray-100 text-gray-700', icon: Clock },
-  sent: { label: 'Sent', color: 'bg-blue-100 text-blue-700', icon: Mail },
-  paid: { label: 'Paid', color: 'bg-emerald-100 text-emerald-700', icon: CheckCircle },
-  overdue: { label: 'Overdue', color: 'bg-red-100 text-red-700', icon: AlertTriangle },
+  draft: { label: 'Draft', color: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300', icon: Clock },
+  sent: { label: 'Sent', color: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300', icon: Mail },
+  paid: { label: 'Paid', color: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300', icon: CheckCircle },
+  overdue: { label: 'Overdue', color: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300', icon: AlertTriangle },
 };
 
 const InvoiceDetail = () => {
@@ -237,33 +237,33 @@ const InvoiceDetail = () => {
         {/* Top section */}
         <div className="flex flex-col sm:flex-row justify-between mb-8">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 mb-1">INVOICE</h2>
-            <p className="text-sm text-gray-500">{invoice.invoiceNumber}</p>
+            <h2 className="text-2xl font-bold text-gray-900 dark:text-gray-100 mb-1">INVOICE</h2>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{invoice.invoiceNumber}</p>
           </div>
           <div className="text-left sm:text-right mt-4 sm:mt-0">
-            <p className="text-sm text-gray-500">
-              Issue Date: <span className="text-gray-900">{formatDate(invoice.issueDate)}</span>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Issue Date: <span className="text-gray-900 dark:text-gray-100">{formatDate(invoice.issueDate)}</span>
             </p>
-            <p className="text-sm text-gray-500">
-              Due Date: <span className="text-gray-900 font-medium">{formatDate(invoice.dueDate)}</span>
+            <p className="text-sm text-gray-500 dark:text-gray-400">
+              Due Date: <span className="text-gray-900 dark:text-gray-100 font-medium">{formatDate(invoice.dueDate)}</span>
             </p>
           </div>
         </div>
 
         {/* Bill to */}
         <div className="mb-8">
-          <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-2">
+          <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-2">
             Bill To
           </p>
-          <p className="font-semibold text-gray-900">{invoice.clientName}</p>
+          <p className="font-semibold text-gray-900 dark:text-gray-100">{invoice.clientName}</p>
           {invoice.clientEmail && (
-            <p className="text-sm text-gray-500">{invoice.clientEmail}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{invoice.clientEmail}</p>
           )}
           {invoice.clientPhone && (
-            <p className="text-sm text-gray-500">{invoice.clientPhone}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{invoice.clientPhone}</p>
           )}
           {invoice.clientAddress && (
-            <p className="text-sm text-gray-500">{invoice.clientAddress}</p>
+            <p className="text-sm text-gray-500 dark:text-gray-400">{invoice.clientAddress}</p>
           )}
         </div>
 
@@ -271,24 +271,24 @@ const InvoiceDetail = () => {
         <div className="overflow-x-auto mb-8">
           <table className="w-full text-sm">
             <thead>
-              <tr className="border-b-2 border-gray-200">
-                <th className="text-left py-3 font-medium text-gray-500">#</th>
-                <th className="text-left py-3 font-medium text-gray-500">Description</th>
-                <th className="text-right py-3 font-medium text-gray-500">Qty</th>
-                <th className="text-right py-3 font-medium text-gray-500">Rate</th>
-                <th className="text-right py-3 font-medium text-gray-500">Amount</th>
+              <tr className="border-b-2 border-gray-200 dark:border-gray-700">
+                <th className="text-left py-3 font-medium text-gray-500 dark:text-gray-400">#</th>
+                <th className="text-left py-3 font-medium text-gray-500 dark:text-gray-400">Description</th>
+                <th className="text-right py-3 font-medium text-gray-500 dark:text-gray-400">Qty</th>
+                <th className="text-right py-3 font-medium text-gray-500 dark:text-gray-400">Rate</th>
+                <th className="text-right py-3 font-medium text-gray-500 dark:text-gray-400">Amount</th>
               </tr>
             </thead>
             <tbody>
               {invoice.items.map((item, i) => (
-                <tr key={i} className="border-b border-gray-100">
-                  <td className="py-3 text-gray-400">{i + 1}</td>
-                  <td className="py-3 text-gray-900">{item.description}</td>
-                  <td className="py-3 text-right text-gray-700">{item.quantity}</td>
-                  <td className="py-3 text-right text-gray-700">
+                <tr key={i} className="border-b border-gray-100 dark:border-gray-800">
+                  <td className="py-3 text-gray-400 dark:text-gray-500">{i + 1}</td>
+                  <td className="py-3 text-gray-900 dark:text-gray-100">{item.description}</td>
+                  <td className="py-3 text-right text-gray-700 dark:text-gray-300">{item.quantity}</td>
+                  <td className="py-3 text-right text-gray-700 dark:text-gray-300">
                     {formatCurrency(item.rate)}
                   </td>
-                  <td className="py-3 text-right font-medium text-gray-900">
+                  <td className="py-3 text-right font-medium text-gray-900 dark:text-gray-100">
                     {formatCurrency(item.amount)}
                   </td>
                 </tr>
@@ -301,24 +301,24 @@ const InvoiceDetail = () => {
         <div className="flex justify-end">
           <div className="w-full sm:w-72 space-y-2">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-500">Subtotal</span>
-              <span className="text-gray-900">{formatCurrency(invoice.subtotal)}</span>
+              <span className="text-gray-500 dark:text-gray-400">Subtotal</span>
+              <span className="text-gray-900 dark:text-gray-100">{formatCurrency(invoice.subtotal)}</span>
             </div>
             {invoice.taxRate > 0 && (
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Tax ({invoice.taxRate}%)</span>
-                <span className="text-gray-900">{formatCurrency(invoice.taxAmount)}</span>
+                <span className="text-gray-500 dark:text-gray-400">Tax ({invoice.taxRate}%)</span>
+                <span className="text-gray-900 dark:text-gray-100">{formatCurrency(invoice.taxAmount)}</span>
               </div>
             )}
             {invoice.discount > 0 && (
               <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Discount</span>
+                <span className="text-gray-500 dark:text-gray-400">Discount</span>
                 <span className="text-red-500">-{formatCurrency(invoice.discount)}</span>
               </div>
             )}
-            <div className="flex justify-between border-t-2 border-gray-900 pt-2">
-              <span className="font-bold text-gray-900">Total</span>
-              <span className="font-bold text-xl text-gray-900">
+            <div className="flex justify-between border-t-2 border-gray-900 dark:border-gray-100 pt-2">
+              <span className="font-bold text-gray-900 dark:text-gray-100">Total</span>
+              <span className="font-bold text-xl text-gray-900 dark:text-gray-100">
                 {formatCurrency(invoice.total)}
               </span>
             </div>
@@ -327,23 +327,23 @@ const InvoiceDetail = () => {
 
         {/* Notes & Terms */}
         {(invoice.notes || invoice.terms) && (
-          <div className="mt-8 pt-6 border-t border-gray-200 grid grid-cols-1 sm:grid-cols-2 gap-6">
+          <div className="mt-8 pt-6 border-t border-gray-200 dark:border-gray-700 grid grid-cols-1 sm:grid-cols-2 gap-6">
             {invoice.notes && (
               <div>
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
+                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
                   Notes
                 </p>
-                <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
                   {invoice.notes}
                 </p>
               </div>
             )}
             {invoice.terms && (
               <div>
-                <p className="text-xs font-medium text-gray-500 uppercase tracking-wider mb-1">
+                <p className="text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider mb-1">
                   Terms & Conditions
                 </p>
-                <p className="text-sm text-gray-700 whitespace-pre-wrap">
+                <p className="text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap">
                   {invoice.terms}
                 </p>
               </div>

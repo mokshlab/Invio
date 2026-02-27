@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
+import { useTheme } from '../context/ThemeContext';
 import { invoiceService } from '../services/invoiceService';
 import { aiService } from '../services/aiService';
 import {
@@ -31,10 +32,10 @@ import {
 import { motion } from 'framer-motion';
 
 const STATUS_BADGES = {
-  draft: 'bg-gray-100 text-gray-700',
-  sent: 'bg-blue-100 text-blue-700',
-  paid: 'bg-emerald-100 text-emerald-700',
-  overdue: 'bg-red-100 text-red-700',
+  draft: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
+  sent: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+  paid: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
+  overdue: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
 };
 
 const PIE_COLORS = {
@@ -48,6 +49,7 @@ const MONTHS = ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', '
 
 const Dashboard = () => {
   const { user } = useAuth();
+  const { dark } = useTheme();
   const navigate = useNavigate();
   const [stats, setStats] = useState(null);
   const [recentInvoices, setRecentInvoices] = useState([]);
@@ -219,15 +221,15 @@ const Dashboard = () => {
           ) : (
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={revenueChartData} barSize={32}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f1f5f9" />
+                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke={dark ? '#334155' : '#f1f5f9'} />
                 <XAxis
                   dataKey="name"
-                  tick={{ fontSize: 12, fill: '#64748b' }}
+                  tick={{ fontSize: 12, fill: dark ? '#94a3b8' : '#64748b' }}
                   axisLine={false}
                   tickLine={false}
                 />
                 <YAxis
-                  tick={{ fontSize: 12, fill: '#64748b' }}
+                  tick={{ fontSize: 12, fill: dark ? '#94a3b8' : '#64748b' }}
                   axisLine={false}
                   tickLine={false}
                   tickFormatter={(v) => fmtCompact(v)}
@@ -236,9 +238,11 @@ const Dashboard = () => {
                   formatter={(v) => [fmt(v), 'Revenue']}
                   contentStyle={{
                     borderRadius: '0.75rem',
-                    border: '1px solid #e2e8f0',
+                    border: dark ? '1px solid #334155' : '1px solid #e2e8f0',
                     boxShadow: '0 4px 6px -1px rgb(0 0 0 / 0.1)',
                     fontSize: '0.875rem',
+                    backgroundColor: dark ? '#1e293b' : '#fff',
+                    color: dark ? '#f1f5f9' : '#1e293b',
                   }}
                 />
                 <Bar dataKey="revenue" fill="#4f46e5" radius={[6, 6, 0, 0]} />
@@ -276,8 +280,10 @@ const Dashboard = () => {
                 <Tooltip
                   contentStyle={{
                     borderRadius: '0.75rem',
-                    border: '1px solid #e2e8f0',
+                    border: dark ? '1px solid #334155' : '1px solid #e2e8f0',
                     fontSize: '0.875rem',
+                    backgroundColor: dark ? '#1e293b' : '#fff',
+                    color: dark ? '#f1f5f9' : '#1e293b',
                   }}
                   formatter={(v) => [`${v} invoices`, '']}
                 />
