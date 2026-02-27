@@ -175,15 +175,15 @@ const InvoiceForm = () => {
       <div className="flex items-center gap-4 mb-6">
         <button
           onClick={() => navigate('/invoices')}
-          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 rounded-lg transition-colors"
+          className="p-2 text-gray-400 hover:text-gray-600 hover:bg-gray-100 dark:text-gray-500 dark:hover:text-gray-300 dark:hover:bg-gray-700 rounded-lg transition-colors"
         >
           <ArrowLeft className="w-5 h-5" />
         </button>
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             {isEditing ? 'Edit Invoice' : 'New Invoice'}
           </h1>
-          <p className="text-gray-500 text-sm mt-0.5">
+          <p className="text-gray-500 dark:text-gray-400 text-sm mt-0.5">
             {isEditing ? 'Update invoice details' : 'Fill in the details to create an invoice'}
           </p>
         </div>
@@ -191,10 +191,10 @@ const InvoiceForm = () => {
 
       {/* Client Details */}
       <div className="card mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Client Details</h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Client Details</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Client Name <span className="text-red-500">*</span>
             </label>
             <input
@@ -210,7 +210,7 @@ const InvoiceForm = () => {
             )}
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Client Email
             </label>
             <input
@@ -223,7 +223,7 @@ const InvoiceForm = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Phone
             </label>
             <input
@@ -236,7 +236,7 @@ const InvoiceForm = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Address
             </label>
             <input
@@ -253,10 +253,10 @@ const InvoiceForm = () => {
 
       {/* Dates */}
       <div className="card mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 mb-4">Invoice Dates</h2>
+        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Invoice Dates</h2>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Issue Date
             </label>
             <input
@@ -268,7 +268,7 @@ const InvoiceForm = () => {
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
+            <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
               Due Date <span className="text-red-500">*</span>
             </label>
             <input
@@ -288,7 +288,7 @@ const InvoiceForm = () => {
       {/* Line Items */}
       <div className="card mb-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900">Items</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Items</h2>
           <button
             type="button"
             onClick={addItem}
@@ -304,7 +304,7 @@ const InvoiceForm = () => {
         )}
 
         {/* Table header (desktop) */}
-        <div className="hidden md:grid grid-cols-12 gap-3 mb-2 text-xs font-medium text-gray-500 uppercase">
+        <div className="hidden md:grid grid-cols-12 gap-3 mb-2 text-xs font-medium text-gray-500 dark:text-gray-400 uppercase">
           <div className="col-span-5">Description</div>
           <div className="col-span-2">Quantity</div>
           <div className="col-span-2">Rate</div>
@@ -347,7 +347,7 @@ const InvoiceForm = () => {
                 />
               </div>
               <div className="col-span-3 md:col-span-2 flex items-center justify-end h-[42px]">
-                <span className="text-sm font-medium text-gray-900">
+                <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
                   {formatCurrency(
                     (parseFloat(item.quantity) || 0) * (parseFloat(item.rate) || 0)
                   )}
@@ -358,7 +358,7 @@ const InvoiceForm = () => {
                   type="button"
                   onClick={() => removeItem(index)}
                   disabled={form.items.length <= 1}
-                  className="p-1.5 text-gray-400 hover:text-red-500 disabled:opacity-30 transition-colors"
+                  className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-red-500 disabled:opacity-30 transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -372,12 +372,12 @@ const InvoiceForm = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Notes & Terms */}
         <div className="card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
             Notes & Terms
           </h2>
           <div className="space-y-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Notes
               </label>
               <textarea
@@ -390,7 +390,7 @@ const InvoiceForm = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Terms
               </label>
               <textarea
@@ -407,44 +407,44 @@ const InvoiceForm = () => {
 
         {/* Financial summary */}
         <div className="card">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">Summary</h2>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Summary</h2>
           <div className="space-y-3">
             <div className="flex justify-between text-sm">
-              <span className="text-gray-500">Subtotal</span>
-              <span className="font-medium text-gray-900">
+              <span className="text-gray-500 dark:text-gray-400">Subtotal</span>
+              <span className="font-medium text-gray-900 dark:text-gray-100">
                 {formatCurrency(subtotal)}
               </span>
             </div>
 
             <div className="flex items-center justify-between text-sm">
               <div className="flex items-center gap-2">
-                <span className="text-gray-500">Tax</span>
+                <span className="text-gray-500 dark:text-gray-400">Tax</span>
                 <input
                   type="number"
                   name="taxRate"
                   value={form.taxRate}
                   onChange={handleChange}
-                  className="w-16 px-2 py-1 border border-gray-300 rounded text-sm text-center"
+                  className="w-16 px-2 py-1 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded text-sm text-center"
                   min="0"
                   max="100"
                 />
-                <span className="text-gray-500">%</span>
+                <span className="text-gray-500 dark:text-gray-400">%</span>
               </div>
-              <span className="font-medium text-gray-900">
+              <span className="font-medium text-gray-900 dark:text-gray-100">
                 {formatCurrency(taxAmount)}
               </span>
             </div>
 
             <div className="flex items-center justify-between text-sm">
               <div className="flex items-center gap-2">
-                <span className="text-gray-500">Discount</span>
-                <span className="text-gray-400">$</span>
+                <span className="text-gray-500 dark:text-gray-400">Discount</span>
+                <span className="text-gray-400 dark:text-gray-500">$</span>
                 <input
                   type="number"
                   name="discount"
                   value={form.discount}
                   onChange={handleChange}
-                  className="w-20 px-2 py-1 border border-gray-300 rounded text-sm"
+                  className="w-20 px-2 py-1 border border-gray-300 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100 rounded text-sm"
                   min="0"
                 />
               </div>
@@ -453,9 +453,9 @@ const InvoiceForm = () => {
               </span>
             </div>
 
-            <div className="border-t border-gray-200 pt-3 flex justify-between">
-              <span className="font-semibold text-gray-900">Total</span>
-              <span className="text-xl font-bold text-gray-900">
+            <div className="border-t border-gray-200 dark:border-gray-700 pt-3 flex justify-between">
+              <span className="font-semibold text-gray-900 dark:text-gray-100">Total</span>
+              <span className="text-xl font-bold text-gray-900 dark:text-gray-100">
                 {formatCurrency(total > 0 ? total : 0)}
               </span>
             </div>
