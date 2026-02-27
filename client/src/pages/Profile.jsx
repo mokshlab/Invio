@@ -131,8 +131,8 @@ const Profile = () => {
   return (
     <div className="max-w-3xl mx-auto space-y-6">
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Profile Settings</h1>
-        <p className="text-gray-500 text-sm mt-1">
+        <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Profile Settings</h1>
+        <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
           Manage your account and business information
         </p>
       </div>
@@ -145,14 +145,14 @@ const Profile = () => {
               <User className="w-5 h-5 text-primary-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Personal Info</h2>
-              <p className="text-sm text-gray-500">Your name and email</p>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Personal Info</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Your name and email</p>
             </div>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Full Name *
               </label>
               <input
@@ -166,16 +166,16 @@ const Profile = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Email
               </label>
               <input
                 type="email"
                 value={user?.email || ''}
-                className="input-field bg-gray-50 cursor-not-allowed"
+                className="input-field bg-gray-50 dark:bg-gray-700 cursor-not-allowed"
                 disabled
               />
-              <p className="text-xs text-gray-400 mt-1">Email cannot be changed</p>
+              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">Email cannot be changed</p>
             </div>
           </div>
         </div>
@@ -187,8 +187,8 @@ const Profile = () => {
               <Building2 className="w-5 h-5 text-purple-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Business Details</h2>
-              <p className="text-sm text-gray-500">
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Business Details</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 This info will appear on your invoices
               </p>
             </div>
@@ -196,7 +196,7 @@ const Profile = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 <Building2 className="w-3.5 h-3.5 inline mr-1" />
                 Business Name
               </label>
@@ -210,7 +210,7 @@ const Profile = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 <Mail className="w-3.5 h-3.5 inline mr-1" />
                 Business Email
               </label>
@@ -224,7 +224,7 @@ const Profile = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 <Phone className="w-3.5 h-3.5 inline mr-1" />
                 Business Phone
               </label>
@@ -238,7 +238,7 @@ const Profile = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Tax / GST ID
               </label>
               <input
@@ -251,7 +251,7 @@ const Profile = () => {
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 <MapPin className="w-3.5 h-3.5 inline mr-1" />
                 Business Address
               </label>
@@ -292,8 +292,8 @@ const Profile = () => {
               <KeyRound className="w-5 h-5 text-amber-600" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold text-gray-900">Security</h2>
-              <p className="text-sm text-gray-500">Change your password</p>
+              <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Security</h2>
+              <p className="text-sm text-gray-500 dark:text-gray-400">Change your password</p>
             </div>
           </div>
           <button
@@ -309,7 +309,7 @@ const Profile = () => {
           <form onSubmit={handlePasswordChange} className="space-y-4">
             {/* Current password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Current Password
               </label>
               <div className="relative">
@@ -324,7 +324,7 @@ const Profile = () => {
                 <button
                   type="button"
                   onClick={() => setShowPass((p) => ({ ...p, current: !p.current }))}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
                 >
                   {showPass.current ? (
                     <EyeOff className="w-4 h-4" />
@@ -337,7 +337,7 @@ const Profile = () => {
 
             {/* New password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 New Password
               </label>
               <div className="relative">
@@ -353,7 +353,7 @@ const Profile = () => {
                 <button
                   type="button"
                   onClick={() => setShowPass((p) => ({ ...p, new: !p.new }))}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
                 >
                   {showPass.new ? (
                     <EyeOff className="w-4 h-4" />
@@ -369,12 +369,12 @@ const Profile = () => {
                       <div
                         key={i}
                         className={`h-1.5 flex-1 rounded-full ${
-                          i <= strength ? strengthColors[strength] : 'bg-gray-200'
+                          i <= strength ? strengthColors[strength] : 'bg-gray-200 dark:bg-gray-600'
                         }`}
                       />
                     ))}
                   </div>
-                  <p className="text-xs text-gray-500 mt-1">
+                  <p className="text-xs text-gray-500 dark:text-gray-400 mt-1">
                     {strengthLabels[strength]}
                   </p>
                 </div>
@@ -383,7 +383,7 @@ const Profile = () => {
 
             {/* Confirm password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Confirm New Password
               </label>
               <div className="relative">
@@ -398,7 +398,7 @@ const Profile = () => {
                 <button
                   type="button"
                   onClick={() => setShowPass((p) => ({ ...p, confirm: !p.confirm }))}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
                 >
                   {showPass.confirm ? (
                     <EyeOff className="w-4 h-4" />
