@@ -6,6 +6,8 @@ import {
   updateInvoice,
   deleteInvoice,
   getInvoiceStats,
+  sendInvoiceEmail,
+  getEmailStatus,
 } from '../controllers/invoiceController.js';
 import { validateCreateInvoice, validateUpdateInvoice } from '../validators/invoiceValidator.js';
 import { protect } from '../middleware/auth.js';
@@ -15,12 +17,15 @@ const router = express.Router();
 // All invoice routes require authentication
 router.use(protect);
 
-// Stats must come BEFORE /:id to avoid "stats" being treated as an id
+// Stats & email status must come BEFORE /:id to avoid param capture
 router.get('/stats', getInvoiceStats);
+router.get('/email-status', getEmailStatus);
 
 router.route('/')
   .get(getInvoices)
   .post(validateCreateInvoice, createInvoice);
+
+router.post('/:id/send', sendInvoiceEmail);
 
 router.route('/:id')
   .get(getInvoiceById)
