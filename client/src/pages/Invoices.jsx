@@ -23,10 +23,10 @@ const STATUS_TABS = [
 ];
 
 const STATUS_STYLES = {
-  draft: 'bg-gray-100 text-gray-700',
-  sent: 'bg-blue-100 text-blue-700',
-  paid: 'bg-emerald-100 text-emerald-700',
-  overdue: 'bg-red-100 text-red-700',
+  draft: 'bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-300',
+  sent: 'bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300',
+  paid: 'bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300',
+  overdue: 'bg-red-100 text-red-700 dark:bg-red-900/40 dark:text-red-300',
 };
 
 const Invoices = () => {
@@ -117,8 +117,8 @@ const Invoices = () => {
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
         <div>
-          <h1 className="text-2xl font-bold text-gray-900">Invoices</h1>
-          <p className="text-gray-500 text-sm mt-1">
+          <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">Invoices</h1>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mt-1">
             Manage and track all your invoices
           </p>
         </div>
@@ -143,7 +143,7 @@ const Invoices = () => {
                 className={`px-3 py-1.5 rounded-lg text-sm font-medium transition-colors ${
                   activeStatus === tab.key
                     ? 'bg-primary-600 text-white'
-                    : 'text-gray-500 hover:bg-gray-100'
+                    : 'text-gray-500 hover:bg-gray-100 dark:text-gray-400 dark:hover:bg-gray-700'
                 }`}
               >
                 {tab.label}
@@ -153,7 +153,7 @@ const Invoices = () => {
 
           {/* Search */}
           <div className="relative lg:ml-auto lg:w-72">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 dark:text-gray-500" />
             <input
               type="text"
               placeholder="Search invoices..."
@@ -170,9 +170,9 @@ const Invoices = () => {
         <LoadingSpinner />
       ) : invoices.length === 0 ? (
         <div className="card flex flex-col items-center justify-center py-16">
-          <FileText className="w-16 h-16 text-gray-300 mb-4 stroke-1" />
-          <h3 className="text-lg font-medium text-gray-900 mb-1">No invoices found</h3>
-          <p className="text-gray-500 text-sm mb-6">
+          <FileText className="w-16 h-16 text-gray-300 dark:text-gray-600 mb-4 stroke-1" />
+          <h3 className="text-lg font-medium text-gray-900 dark:text-gray-100 mb-1">No invoices found</h3>
+          <p className="text-gray-500 dark:text-gray-400 text-sm mb-6">
             {searchQuery || activeStatus !== 'all'
               ? 'Try changing your filters'
               : 'Create your first invoice to get started'}
@@ -193,50 +193,50 @@ const Invoices = () => {
           <div className="hidden md:block card overflow-hidden p-0">
             <table className="w-full">
               <thead>
-                <tr className="border-b border-gray-200 bg-gray-50">
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
+                <tr className="border-b border-gray-200 dark:border-gray-700 bg-gray-50 dark:bg-gray-900">
+                  <th className="text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider px-6 py-3">
                     Invoice
                   </th>
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
+                  <th className="text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider px-6 py-3">
                     Client
                   </th>
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
+                  <th className="text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider px-6 py-3">
                     Date
                   </th>
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
+                  <th className="text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider px-6 py-3">
                     Amount
                   </th>
-                  <th className="text-left text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
+                  <th className="text-left text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider px-6 py-3">
                     Status
                   </th>
-                  <th className="text-right text-xs font-medium text-gray-500 uppercase tracking-wider px-6 py-3">
+                  <th className="text-right text-xs font-medium text-gray-500 dark:text-gray-400 uppercase tracking-wider px-6 py-3">
                     Actions
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-100">
+              <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
                 {invoices.map((inv) => (
                   <tr
                     key={inv._id}
-                    className="hover:bg-gray-50 transition-colors cursor-pointer"
+                    className="hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors cursor-pointer"
                     onClick={() => navigate(`/invoices/${inv._id}`)}
                   >
                     <td className="px-6 py-4">
-                      <span className="font-medium text-gray-900 text-sm">
+                      <span className="font-medium text-gray-900 dark:text-gray-100 text-sm">
                         {inv.invoiceNumber}
                       </span>
                     </td>
                     <td className="px-6 py-4">
-                      <p className="text-sm text-gray-900">{inv.clientName}</p>
+                      <p className="text-sm text-gray-900 dark:text-gray-100">{inv.clientName}</p>
                       {inv.clientEmail && (
-                        <p className="text-xs text-gray-500">{inv.clientEmail}</p>
+                        <p className="text-xs text-gray-500 dark:text-gray-400">{inv.clientEmail}</p>
                       )}
                     </td>
-                    <td className="px-6 py-4 text-sm text-gray-500">
+                    <td className="px-6 py-4 text-sm text-gray-500 dark:text-gray-400">
                       {formatDate(inv.createdAt)}
                     </td>
                     <td className="px-6 py-4">
-                      <span className="font-semibold text-sm text-gray-900">
+                      <span className="font-semibold text-sm text-gray-900 dark:text-gray-100">
                         {formatCurrency(inv.total)}
                       </span>
                     </td>
@@ -256,14 +256,14 @@ const Invoices = () => {
                       >
                         <button
                           onClick={() => navigate(`/invoices/${inv._id}`)}
-                          className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                          className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
                           title="View"
                         >
                           <Eye className="w-4 h-4" />
                         </button>
                         <button
                           onClick={() => navigate(`/invoices/${inv._id}/edit`)}
-                          className="p-1.5 text-gray-400 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
+                          className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-primary-600 hover:bg-primary-50 rounded-lg transition-colors"
                           title="Edit"
                         >
                           <Pencil className="w-4 h-4" />
@@ -273,7 +273,7 @@ const Invoices = () => {
                           className={`p-1.5 rounded-lg transition-colors ${
                             deleteId === inv._id
                               ? 'text-red-600 bg-red-50'
-                              : 'text-gray-400 hover:text-red-600 hover:bg-red-50'
+                              : 'text-gray-400 dark:text-gray-500 hover:text-red-600 hover:bg-red-50'
                           }`}
                           title={deleteId === inv._id ? 'Click again to confirm' : 'Delete'}
                         >
@@ -297,10 +297,10 @@ const Invoices = () => {
               >
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <p className="font-medium text-gray-900 text-sm">
+                    <p className="font-medium text-gray-900 dark:text-gray-100 text-sm">
                       {inv.invoiceNumber}
                     </p>
-                    <p className="text-sm text-gray-500">{inv.clientName}</p>
+                    <p className="text-sm text-gray-500 dark:text-gray-400">{inv.clientName}</p>
                   </div>
                   <span
                     className={`inline-flex px-2.5 py-0.5 rounded-full text-xs font-medium capitalize ${
@@ -311,10 +311,10 @@ const Invoices = () => {
                   </span>
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-lg font-semibold text-gray-900">
+                  <span className="text-lg font-semibold text-gray-900 dark:text-gray-100">
                     {formatCurrency(inv.total)}
                   </span>
-                  <span className="text-xs text-gray-500">
+                  <span className="text-xs text-gray-500 dark:text-gray-400">
                     {formatDate(inv.createdAt)}
                   </span>
                 </div>
@@ -325,7 +325,7 @@ const Invoices = () => {
           {/* Pagination */}
           {pagination.pages > 1 && (
             <div className="flex items-center justify-between mt-6">
-              <p className="text-sm text-gray-500">
+              <p className="text-sm text-gray-500 dark:text-gray-400">
                 Showing {(pagination.page - 1) * pagination.limit + 1}–
                 {Math.min(pagination.page * pagination.limit, pagination.total)} of{' '}
                 {pagination.total}
@@ -338,7 +338,7 @@ const Invoices = () => {
                 >
                   <ChevronLeft className="w-4 h-4" />
                 </button>
-                <span className="text-sm text-gray-700 px-2">
+                <span className="text-sm text-gray-700 dark:text-gray-300 px-2">
                   {pagination.page} / {pagination.pages}
                 </span>
                 <button
