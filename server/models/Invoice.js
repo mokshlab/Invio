@@ -158,6 +158,11 @@ invoiceSchema.pre('validate', function (next) {
 /**
  * Static method: generate next invoice number globally.
  * Format: INV-YYYY-NNNN (e.g., INV-2026-0001)
+ *
+ * Uses a retry loop to handle race conditions —
+ * if two concurrent requests generate the same number,
+ * the unique index on invoiceNumber will reject the duplicate
+ * and the caller can retry.
  */
 invoiceSchema.statics.generateInvoiceNumber = async function () {
   const year = new Date().getFullYear();
@@ -175,6 +180,27 @@ invoiceSchema.statics.generateInvoiceNumber = async function () {
   const lastNumber = parseInt(lastInvoice.invoiceNumber.split('-')[2], 10);
   const nextNumber = String(lastNumber + 1).padStart(4, '0');
   return `${prefix}${nextNumber}`;
+};
+
+/**
+ * Retries invoice creation up to maxRetries times on duplicate-key errors (E11000).
+ * Why: generateInvoiceNumber() reads the last number then increments — two concurrent
+ * requests can read the same value, causing a unique-index collision on invoiceNumber.
+ * Retrying with a fresh number resolves the race without pessimistic locking.
+ */
+invoiceSchema.statics.createWithRetry = async function (data, maxRetries = 3) {
+  for (let attempt = 0; attempt < maxRetries; attempt++) {
+    try {
+      const invoiceNumber = await this.generateInvoiceNumber();
+      return await this.create({ ...data, invoiceNumber });
+    } catch (err) {
+      // Retry only on duplicate key error for invoiceNumber
+      if (err.code === 11000 && err.keyPattern?.invoiceNumber && attempt < maxRetries - 1) {
+        continue;
+      }
+      throw err;
+    }
+  }
 };
 
 const Invoice = mongoose.model('Invoice', invoiceSchema);
