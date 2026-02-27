@@ -1,17 +1,30 @@
+/**
+ * @module controllers/invoiceController
+ * @description CRUD + email-sending endpoints for invoices.
+ * All handlers are scoped to the authenticated user via req.user._id.
+ */
 import Invoice from '../models/Invoice.js';
 import AppError from '../utils/AppError.js';
+import {
+  sendEmail,
+  buildInvoiceEmail,
+  isEmailConfigured,
+} from '../services/emailService.js';
+
+/**
+ * Escape special regex characters in user input to prevent ReDoS attacks.
+ * Used before passing search strings into MongoDB $regex queries.
+ */
+const escapeRegex = (str) => str.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
 
 // @desc    Create a new invoice
 // @route   POST /api/invoices
 // @access  Private
 export const createInvoice = async (req, res, next) => {
   try {
-    const invoiceNumber = await Invoice.generateInvoiceNumber();
-
-    const invoice = await Invoice.create({
+    const invoice = await Invoice.createWithRetry({
       ...req.body,
       user: req.user._id,
-      invoiceNumber,
       issueDate: req.body.issueDate ? new Date(req.body.issueDate) : new Date(),
       ...(req.body.dueDate ? { dueDate: new Date(req.body.dueDate) } : {}),
     });
@@ -39,10 +52,11 @@ export const getInvoices = async (req, res, next) => {
       }
     }
     if (search) {
+      const escaped = escapeRegex(search.trim());
       filter.$or = [
-        { invoiceNumber: { $regex: search, $options: 'i' } },
-        { clientName: { $regex: search, $options: 'i' } },
-        { clientEmail: { $regex: search, $options: 'i' } },
+        { invoiceNumber: { $regex: escaped, $options: 'i' } },
+        { clientName: { $regex: escaped, $options: 'i' } },
+        { clientEmail: { $regex: escaped, $options: 'i' } },
       ];
     }
 
@@ -237,4 +251,57 @@ export const getInvoiceStats = async (req, res, next) => {
   } catch (error) {
     next(error);
   }
+};
+
+/**
+ * @desc Send invoice via email — auto-transitions status from draft → sent.
+ * Falls back to a console preview when SMTP is not configured (see emailService).
+ */
+export const sendInvoiceEmail = async (req, res, next) => {
+  try {
+    const invoice = await Invoice.findOne({
+      _id: req.params.id,
+      user: req.user._id,
+    });
+
+    if (!invoice) {
+      throw new AppError('Invoice not found', 404);
+    }
+
+    if (!invoice.clientEmail) {
+      throw new AppError('Client email is required to send an invoice', 400);
+    }
+
+    const senderName = req.user.businessName || req.user.name;
+    const { subject, html } = buildInvoiceEmail(invoice, senderName);
+
+    const result = await sendEmail({
+      to: invoice.clientEmail,
+      subject,
+      html,
+    });
+
+    // Auto-update status from draft to sent
+    if (invoice.status === 'draft') {
+      invoice.status = 'sent';
+      await invoice.save();
+    }
+
+    res.json({
+      message: result.preview
+        ? 'Email previewed (SMTP not configured — check server console)'
+        : `Invoice sent to ${invoice.clientEmail}`,
+      preview: result.preview || false,
+      invoice,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
+
+// @desc    Check email configuration status
+// @route   GET /api/invoices/email-status
+// @access  Private
+export const getEmailStatus = (req, res) => {
+  res.json({ configured: isEmailConfigured() });
 };
