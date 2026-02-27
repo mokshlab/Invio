@@ -3,7 +3,7 @@
  */
 
 const Pulse = ({ className = '' }) => (
-  <div className={`animate-pulse bg-gray-200 rounded ${className}`} />
+  <div className={`animate-pulse bg-gray-200 dark:bg-gray-700 rounded ${className}`} />
 );
 
 // ─── Single stat card skeleton ───
@@ -39,10 +39,10 @@ export const TableRowSkeleton = ({ cols = 5 }) => (
 // ─── Invoice list skeleton ───
 export const InvoiceListSkeleton = ({ rows = 5 }) => (
   <div className="card p-0 overflow-hidden">
-    <div className="p-4 border-b border-gray-100">
+    <div className="p-4 border-b border-gray-100 dark:border-gray-700">
       <Pulse className="h-5 w-32" />
     </div>
-    <div className="divide-y divide-gray-100">
+    <div className="divide-y divide-gray-100 dark:divide-gray-700">
       {Array.from({ length: rows }).map((_, i) => (
         <div key={i} className="flex items-center justify-between p-4">
           <div className="flex items-center gap-3">

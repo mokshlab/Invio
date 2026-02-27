@@ -13,7 +13,7 @@ const LoadingSpinner = ({ fullScreen = false, size = 'md' }) => {
 
   if (fullScreen) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
+      <div className="min-h-screen flex items-center justify-center bg-gray-50 dark:bg-gray-950">
         {spinner}
       </div>
     );
