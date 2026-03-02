@@ -1,23 +1,30 @@
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { lazy, Suspense } from 'react';
+import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import { Toaster } from 'react-hot-toast';
 import { AuthProvider } from './context/AuthContext';
 import { ThemeProvider } from './context/ThemeContext';
+import ErrorBoundary from './components/common/ErrorBoundary';
 import ProtectedRoute from './components/common/ProtectedRoute';
 import Layout from './components/layout/Layout';
-import Login from './pages/Login';
-import Signup from './pages/Signup';
-import Dashboard from './pages/Dashboard';
-import Invoices from './pages/Invoices';
-import InvoiceForm from './pages/InvoiceForm';
-import InvoiceDetail from './pages/InvoiceDetail';
-import Profile from './pages/Profile';
-import AICreator from './pages/AICreator';
+import LoadingSpinner from './components/common/LoadingSpinner';
+
+// Lazy-loaded pages — heavy deps (recharts, framer-motion, html2pdf) stay out of initial bundle
+const Login = lazy(() => import('./pages/Login'));
+const Signup = lazy(() => import('./pages/Signup'));
+const Dashboard = lazy(() => import('./pages/Dashboard'));
+const Invoices = lazy(() => import('./pages/Invoices'));
+const InvoiceForm = lazy(() => import('./pages/InvoiceForm'));
+const InvoiceDetail = lazy(() => import('./pages/InvoiceDetail'));
+const Profile = lazy(() => import('./pages/Profile'));
+const AICreator = lazy(() => import('./pages/AICreator'));
+const NotFound = lazy(() => import('./pages/NotFound'));
 
 const App = () => {
   return (
     <BrowserRouter>
       <ThemeProvider>
         <AuthProvider>
+        <ErrorBoundary>
         <Toaster
           position="top-right"
           toastOptions={{
@@ -30,6 +37,7 @@ const App = () => {
             },
           }}
         />
+        <Suspense fallback={<LoadingSpinner fullScreen />}>
         <Routes>
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
@@ -38,6 +46,7 @@ const App = () => {
           {/* Protected routes — wrapped in layout */}
           <Route element={<ProtectedRoute />}>
             <Route element={<Layout />}>
+              <Route path="/" element={<Dashboard />} />
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/invoices" element={<Invoices />} />
               <Route path="/invoices/new" element={<InvoiceForm />} />
@@ -48,10 +57,14 @@ const App = () => {
             </Route>
           </Route>
 
-          {/* Catch-all redirect */}
-          <Route path="*" element={<Navigate to="/dashboard" replace />} />
+          {/* 404 catch-all */}
+          <Route path="*" element={<NotFound />} />
         </Routes>
-      </AuthProvider>      </ThemeProvider>    </BrowserRouter>
+        </Suspense>
+        </ErrorBoundary>
+      </AuthProvider>
+    </ThemeProvider>
+  </BrowserRouter>
   );
 };
 
