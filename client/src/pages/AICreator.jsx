@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { aiService } from '../services/aiService';
 import { invoiceService } from '../services/invoiceService';
+import { formatCurrency as fmt } from '../utils/format';
 import {
   Sparkles,
   FileText,
@@ -39,9 +40,6 @@ const SAMPLE_TEXTS = [
   `Hello, this is James from TechVibe LLC (james@techvibe.io). We discussed building a REST API with authentication, database design, and admin dashboard. We also need API documentation and deployment to AWS. Budget around $3000-5000.`,
   `Need a logo design, business card design, and brand guidelines document for my startup "GreenLeaf Analytics". Contact: alex@greenleaf.co, phone 555-0199. Also need social media templates for Instagram and LinkedIn.`,
 ];
-
-const fmt = (v) =>
-  new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(v || 0);
 
 // ─── Main Component ───
 const AICreator = () => {

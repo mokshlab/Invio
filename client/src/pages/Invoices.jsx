@@ -1,6 +1,7 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { invoiceService } from '../services/invoiceService';
+import { formatCurrency, formatDateShort as formatDate } from '../utils/format';
 import {
   Plus,
   Search,
@@ -37,6 +38,9 @@ const Invoices = () => {
   const [pagination, setPagination] = useState({ page: 1, pages: 1, total: 0 });
   const [loading, setLoading] = useState(true);
   const [deleteId, setDeleteId] = useState(null);
+  const [searchInput, setSearchInput] = useState(searchParams.get('search') || '');
+  const debounceRef = useRef(null);
+  const deleteTimerRef = useRef(null);
 
   const activeStatus = searchParams.get('status') || 'all';
   const searchQuery = searchParams.get('search') || '';
@@ -72,12 +76,27 @@ const Invoices = () => {
   };
 
   const handleSearch = (e) => {
-    const params = new URLSearchParams(searchParams);
-    if (e.target.value) params.set('search', e.target.value);
-    else params.delete('search');
-    params.delete('page');
-    setSearchParams(params);
+    const value = e.target.value;
+    setSearchInput(value);
+
+    // Debounce URL param update by 400ms
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      const params = new URLSearchParams(searchParams);
+      if (value) params.set('search', value);
+      else params.delete('search');
+      params.delete('page');
+      setSearchParams(params);
+    }, 400);
   };
+
+  // Cleanup timers on unmount
+  useEffect(() => {
+    return () => {
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      if (deleteTimerRef.current) clearTimeout(deleteTimerRef.current);
+    };
+  }, []);
 
   const handlePageChange = (newPage) => {
     const params = new URLSearchParams(searchParams);
@@ -98,19 +117,9 @@ const Invoices = () => {
     } else {
       setDeleteId(id);
       // Auto-reset after 3 seconds
-      setTimeout(() => setDeleteId(null), 3000);
+      deleteTimerRef.current = setTimeout(() => setDeleteId(null), 3000);
     }
   };
-
-  const formatCurrency = (amount) =>
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount);
-
-  const formatDate = (date) =>
-    new Date(date).toLocaleDateString('en-US', {
-      month: 'short',
-      day: 'numeric',
-      year: 'numeric',
-    });
 
   return (
     <div>
@@ -157,7 +166,7 @@ const Invoices = () => {
             <input
               type="text"
               placeholder="Search invoices..."
-              value={searchQuery}
+              value={searchInput}
               onChange={handleSearch}
               className="input-field pl-9 py-2 text-sm"
             />

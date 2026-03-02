@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { invoiceService } from '../services/invoiceService';
+import { formatCurrency } from '../utils/format';
 import { Plus, Trash2, ArrowLeft, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
 import LoadingSpinner from '../components/common/LoadingSpinner';
@@ -114,9 +115,6 @@ const InvoiceForm = () => {
   );
   const taxAmount = (subtotal * (parseFloat(form.taxRate) || 0)) / 100;
   const total = subtotal + taxAmount - (parseFloat(form.discount) || 0);
-
-  const formatCurrency = (v) =>
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(v);
 
   // ---- Validation ----
   const validate = () => {
@@ -358,6 +356,7 @@ const InvoiceForm = () => {
                   type="button"
                   onClick={() => removeItem(index)}
                   disabled={form.items.length <= 1}
+                  aria-label="Remove line item"
                   className="p-1.5 text-gray-400 dark:text-gray-500 hover:text-red-500 disabled:opacity-30 transition-colors"
                 >
                   <Trash2 className="w-4 h-4" />

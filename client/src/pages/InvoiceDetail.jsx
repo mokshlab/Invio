@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { invoiceService } from '../services/invoiceService';
+import { formatCurrency, formatDateLong as formatDate } from '../utils/format';
 import {
   ArrowLeft,
   Pencil,
@@ -66,16 +67,6 @@ const InvoiceDetail = () => {
     }
   };
 
-  const formatCurrency = (v) =>
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(v);
-
-  const formatDate = (d) =>
-    new Date(d).toLocaleDateString('en-US', {
-      month: 'long',
-      day: 'numeric',
-      year: 'numeric',
-    });
-
   if (loading) return <LoadingSpinner />;
   if (!invoice) return null;
 
@@ -89,6 +80,7 @@ const InvoiceDetail = () => {
         <div className="flex items-center gap-4">
           <button
             onClick={() => navigate('/invoices')}
+            aria-label="Back to invoices"
             className="p-2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
           >
             <ArrowLeft className="w-5 h-5" />
@@ -114,6 +106,7 @@ const InvoiceDetail = () => {
         <div className="flex items-center gap-2">
           <button
             onClick={() => navigate(`/invoices/${id}/edit`)}
+            aria-label="Edit invoice"
             className="btn-secondary flex items-center gap-2 text-sm"
           >
             <Pencil className="w-4 h-4" />
@@ -121,6 +114,7 @@ const InvoiceDetail = () => {
           </button>
           <button
             onClick={() => window.print()}
+            aria-label="Print invoice"
             className="btn-secondary flex items-center gap-2 text-sm"
           >
             <Printer className="w-4 h-4" />
@@ -135,6 +129,7 @@ const InvoiceDetail = () => {
                 toast.error('Failed to generate PDF');
               }
             }}
+            aria-label="Download PDF"
             className="btn-secondary flex items-center gap-2 text-sm"
           >
             <Download className="w-4 h-4" />
@@ -155,6 +150,7 @@ const InvoiceDetail = () => {
                 }
               }}
               disabled={sending}
+              aria-label={sending ? 'Sending email' : 'Email invoice'}
               className="btn-primary flex items-center gap-2 text-sm"
             >
               {sending ? (
@@ -167,6 +163,7 @@ const InvoiceDetail = () => {
           )}
           <button
             onClick={() => setShowDeleteConfirm(true)}
+            aria-label="Delete invoice"
             className="btn-danger flex items-center gap-2 text-sm"
           >
             <Trash2 className="w-4 h-4" />

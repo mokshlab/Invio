@@ -2,6 +2,7 @@ import { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useTheme } from '../context/ThemeContext';
+import { formatCurrency, fmtCompact } from '../utils/format';
 import { invoiceService } from '../services/invoiceService';
 import { aiService } from '../services/aiService';
 import {
@@ -88,16 +89,7 @@ const Dashboard = () => {
     }
   };
 
-  const fmt = (v) =>
-    new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(v || 0);
-
-  const fmtCompact = (v) =>
-    new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      notation: 'compact',
-      maximumFractionDigits: 1,
-    }).format(v || 0);
+  const fmt = formatCurrency;
 
   const totalInvoices = stats?.totalInvoices || 0;
   const totalRevenue = stats?.totalRevenue || 0;
