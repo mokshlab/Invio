@@ -42,12 +42,21 @@ export const getInvoices = async (req, res, next) => {
   try {
     const { status, search, sort = '-createdAt', page = 1, limit = 10 } = req.query;
 
+    // Whitelist allowed sort fields to prevent injection
+    const ALLOWED_SORT_FIELDS = ['createdAt', 'dueDate', 'total', 'clientName', 'invoiceNumber', 'status'];
+    const sortField = sort.replace(/^-/, '');
+    const safeSort = ALLOWED_SORT_FIELDS.includes(sortField)
+      ? sort
+      : '-createdAt';
+
     // Build filter
+    const ALLOWED_STATUSES = ['draft', 'sent', 'paid', 'overdue'];
     const filter = { user: req.user._id };
     if (status && status !== 'all') {
       if (status.includes(',')) {
-        filter.status = { $in: status.split(',') };
-      } else {
+        const statuses = status.split(',').filter(s => ALLOWED_STATUSES.includes(s));
+        if (statuses.length) filter.status = { $in: statuses };
+      } else if (ALLOWED_STATUSES.includes(status)) {
         filter.status = status;
       }
     }
@@ -60,12 +69,12 @@ export const getInvoices = async (req, res, next) => {
       ];
     }
 
-    const pageNum = parseInt(page, 10);
-    const limitNum = parseInt(limit, 10);
+    const pageNum = Math.max(1, parseInt(page, 10) || 1);
+    const limitNum = Math.min(100, Math.max(1, parseInt(limit, 10) || 10));
     const skip = (pageNum - 1) * limitNum;
 
     const [invoices, total] = await Promise.all([
-      Invoice.find(filter).sort(sort).skip(skip).limit(limitNum),
+      Invoice.find(filter).sort(safeSort).skip(skip).limit(limitNum),
       Invoice.countDocuments(filter),
     ]);
 
