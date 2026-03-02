@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react';
 import { profileService } from '../services/profileService';
 import { useAuth } from '../context/AuthContext';
+import { getPasswordStrength, strengthLabels, strengthColors } from '../utils/passwordStrength';
 import {
   User,
   Building2,
@@ -111,22 +112,9 @@ const Profile = () => {
     }
   };
 
-  const passwordStrength = (p) => {
-    let s = 0;
-    if (p.length >= 6) s++;
-    if (p.length >= 10) s++;
-    if (/[A-Z]/.test(p)) s++;
-    if (/[0-9]/.test(p)) s++;
-    if (/[^A-Za-z0-9]/.test(p)) s++;
-    return s;
-  };
-
-  const strengthLabels = ['', 'Weak', 'Fair', 'Good', 'Strong', 'Excellent'];
-  const strengthColors = ['', 'bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-blue-500', 'bg-emerald-500'];
-
   if (loading) return <LoadingSpinner />;
 
-  const strength = passwordStrength(passwords.newPassword);
+  const strength = getPasswordStrength(passwords.newPassword);
 
   return (
     <div className="max-w-3xl mx-auto space-y-6">
@@ -152,10 +140,11 @@ const Profile = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label htmlFor="profile-name" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Full Name *
               </label>
               <input
+                id="profile-name"
                 type="text"
                 name="name"
                 value={form.name}
@@ -166,10 +155,11 @@ const Profile = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label htmlFor="profile-email" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Email
               </label>
               <input
+                id="profile-email"
                 type="email"
                 value={user?.email || ''}
                 className="input-field bg-gray-50 dark:bg-gray-700 cursor-not-allowed"
@@ -196,11 +186,12 @@ const Profile = () => {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label htmlFor="profile-businessName" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 <Building2 className="w-3.5 h-3.5 inline mr-1" />
                 Business Name
               </label>
               <input
+                id="profile-businessName"
                 type="text"
                 name="businessName"
                 value={form.businessName}
@@ -210,11 +201,12 @@ const Profile = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label htmlFor="profile-businessEmail" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 <Mail className="w-3.5 h-3.5 inline mr-1" />
                 Business Email
               </label>
               <input
+                id="profile-businessEmail"
                 type="email"
                 name="businessEmail"
                 value={form.businessEmail}
@@ -224,11 +216,12 @@ const Profile = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label htmlFor="profile-businessPhone" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 <Phone className="w-3.5 h-3.5 inline mr-1" />
                 Business Phone
               </label>
               <input
+                id="profile-businessPhone"
                 type="text"
                 name="businessPhone"
                 value={form.businessPhone}
@@ -238,10 +231,11 @@ const Profile = () => {
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label htmlFor="profile-taxId" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Tax / GST ID
               </label>
               <input
+                id="profile-taxId"
                 type="text"
                 name="taxId"
                 value={form.taxId}
@@ -251,11 +245,12 @@ const Profile = () => {
               />
             </div>
             <div className="sm:col-span-2">
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label htmlFor="profile-businessAddress" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 <MapPin className="w-3.5 h-3.5 inline mr-1" />
                 Business Address
               </label>
               <textarea
+                id="profile-businessAddress"
                 name="businessAddress"
                 value={form.businessAddress}
                 onChange={handleChange}
@@ -309,11 +304,12 @@ const Profile = () => {
           <form onSubmit={handlePasswordChange} className="space-y-4">
             {/* Current password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label htmlFor="profile-currentPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Current Password
               </label>
               <div className="relative">
                 <input
+                  id="profile-currentPassword"
                   type={showPass.current ? 'text' : 'password'}
                   name="currentPassword"
                   value={passwords.currentPassword}
@@ -324,6 +320,7 @@ const Profile = () => {
                 <button
                   type="button"
                   onClick={() => setShowPass((p) => ({ ...p, current: !p.current }))}
+                  aria-label={showPass.current ? 'Hide current password' : 'Show current password'}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
                 >
                   {showPass.current ? (
@@ -337,11 +334,12 @@ const Profile = () => {
 
             {/* New password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label htmlFor="profile-newPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 New Password
               </label>
               <div className="relative">
                 <input
+                  id="profile-newPassword"
                   type={showPass.new ? 'text' : 'password'}
                   name="newPassword"
                   value={passwords.newPassword}
@@ -353,6 +351,7 @@ const Profile = () => {
                 <button
                   type="button"
                   onClick={() => setShowPass((p) => ({ ...p, new: !p.new }))}
+                  aria-label={showPass.new ? 'Hide new password' : 'Show new password'}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
                 >
                   {showPass.new ? (
@@ -383,11 +382,12 @@ const Profile = () => {
 
             {/* Confirm password */}
             <div>
-              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
+              <label htmlFor="profile-confirmPassword" className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
                 Confirm New Password
               </label>
               <div className="relative">
                 <input
+                  id="profile-confirmPassword"
                   type={showPass.confirm ? 'text' : 'password'}
                   name="confirmPassword"
                   value={passwords.confirmPassword}
@@ -398,6 +398,7 @@ const Profile = () => {
                 <button
                   type="button"
                   onClick={() => setShowPass((p) => ({ ...p, confirm: !p.confirm }))}
+                  aria-label={showPass.confirm ? 'Hide confirm password' : 'Show confirm password'}
                   className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-400"
                 >
                   {showPass.confirm ? (
