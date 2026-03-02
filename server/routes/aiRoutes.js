@@ -1,5 +1,11 @@
 import express from 'express';
 import { protect } from '../middleware/auth.js';
+import { validate } from '../validators/authValidator.js';
+import {
+  generateInvoiceSchema,
+  paymentReminderSchema,
+  sendReminderSchema,
+} from '../validators/aiValidator.js';
 import {
   aiGenerateInvoice,
   aiPaymentReminder,
@@ -13,13 +19,13 @@ const router = express.Router();
 router.use(protect);
 
 // POST /api/ai/generate-invoice  — text → structured invoice
-router.post('/generate-invoice', aiGenerateInvoice);
+router.post('/generate-invoice', validate(generateInvoiceSchema), aiGenerateInvoice);
 
 // POST /api/ai/payment-reminder  — invoice → reminder email
-router.post('/payment-reminder', aiPaymentReminder);
+router.post('/payment-reminder', validate(paymentReminderSchema), aiPaymentReminder);
 
 // POST /api/ai/send-reminder     — send generated reminder via email
-router.post('/send-reminder', sendReminderEmail);
+router.post('/send-reminder', validate(sendReminderSchema), sendReminderEmail);
 
 // GET  /api/ai/insights           — analyse all invoices
 router.get('/insights', aiInsights);
