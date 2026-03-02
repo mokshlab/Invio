@@ -1,6 +1,19 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
+// --------------- Env Validation ---------------
+const required = ['MONGO_URI', 'JWT_ACCESS_SECRET', 'JWT_REFRESH_SECRET'];
+
+const missing = required.filter((key) => !process.env[key]);
+if (missing.length) {
+  console.error(`\n❌ Missing required environment variables:\n   ${missing.join(', ')}\n`);
+  process.exit(1);
+}
+
+if (!process.env.GEMINI_API_KEY) {
+  console.warn('⚠️  GEMINI_API_KEY not set — AI features will be unavailable');
+}
+
 export default {
   port: process.env.PORT || 5000,
   mongoUri: process.env.MONGO_URI,

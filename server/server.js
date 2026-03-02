@@ -89,11 +89,28 @@ app.use(errorHandler);
 // --------------- Start Server ---------------
 const startServer = async () => {
   await connectDB();
-  app.listen(config.port, () => {
+  const server = app.listen(config.port, () => {
     console.log(
       `\n🚀 Server running on port ${config.port} in ${config.nodeEnv} mode\n`
     );
   });
+
+  // --------------- Graceful Shutdown ---------------
+  const shutdown = (signal) => {
+    console.log(`\n${signal} received — shutting down gracefully…`);
+    server.close(() => {
+      console.log('✅ HTTP server closed');
+      process.exit(0);
+    });
+    // Force exit if connections don't drain within 10 s
+    setTimeout(() => {
+      console.error('⚠️  Forcing shutdown after timeout');
+      process.exit(1);
+    }, 10_000);
+  };
+
+  process.on('SIGTERM', () => shutdown('SIGTERM'));
+  process.on('SIGINT', () => shutdown('SIGINT'));
 };
 
 startServer();
