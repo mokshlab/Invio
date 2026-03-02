@@ -5,6 +5,8 @@ A full-stack MERN application for creating, managing, and sending professional i
 ![MERN](https://img.shields.io/badge/Stack-MERN-green)
 ![AI](https://img.shields.io/badge/AI-Google%20Gemini-blue)
 ![License](https://img.shields.io/badge/License-MIT-yellow)
+![React](https://img.shields.io/badge/React-18-61DAFB)
+![Node](https://img.shields.io/badge/Node.js-18+-339933)
 
 ---
 
@@ -24,11 +26,16 @@ A full-stack MERN application for creating, managing, and sending professional i
 
 ### Authentication & Security
 - **JWT auth** — Access tokens (15 min) + refresh tokens (7 days, httpOnly cookie)
-- **Silent refresh** — Axios interceptor auto-refreshes expired tokens
+- **Silent refresh** — Axios interceptor with mutex pattern to prevent race conditions on concurrent 401s
 - **Rate limiting** — Global (100/15 min), auth (15/15 min), AI (20/15 min)
 - **Input sanitization** — MongoDB injection prevention via `express-mongo-sanitize`
 - **Regex DoS protection** — User search input is escaped before regex compilation
+- **Sort field whitelist** — Only allowed fields can be used in query sort parameters
+- **Zod validation** — All routes (auth, invoices, profile, AI) validated with Zod schemas
+- **Env validation** — Required environment variables checked at startup with clear error messages
+- **Graceful shutdown** — SIGTERM/SIGINT handlers drain connections before exit
 - **Helmet** — Secure HTTP headers
+- **XSS-safe emails** — All user-interpolated values in HTML email templates are escaped
 
 ### Email Integration
 - **Send invoices** — Email styled HTML invoices directly to clients
@@ -42,6 +49,20 @@ A full-stack MERN application for creating, managing, and sending professional i
 - **Empty states** — Helpful messaging with CTAs when no data exists
 - **Animated transitions** — Page and card animations via Framer Motion
 - **Dashboard** — Revenue charts, status breakdown, recent invoices, top clients, AI insights widget
+- **Error boundary** — Graceful error recovery UI instead of white-screen crashes
+- **404 page** — Custom not-found page with navigation options
+- **Redirect after login** — Protected routes remember and restore the originally requested URL
+
+### Performance
+- **Code splitting** — All page components lazy-loaded with `React.lazy` + `Suspense`
+- **Search debounce** — 400ms debounced search prevents excessive API calls
+- **Request timeout** — 30s axios timeout prevents hung requests
+- **Pagination cap** — Server enforces max 100 items per page
+
+### Accessibility
+- **Semantic labels** — `aria-label` on all icon-only buttons (navigation, actions, toggles)
+- **Form association** — `htmlFor`/`id` pairing on all form inputs (Login, Signup, Profile)
+- **Live regions** — `role="alert"` on error messages, `role="status"` on spinners
 
 ---
 
@@ -115,28 +136,28 @@ Invio/
 ├── client/                   # React frontend
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── common/       # LoadingSpinner, SkeletonLoader, ProtectedRoute
+│   │   │   ├── common/       # LoadingSpinner, SkeletonLoader, ProtectedRoute, ErrorBoundary
 │   │   │   └── layout/       # Layout, Header (theme toggle), Sidebar
 │   │   ├── context/          # AuthContext, ThemeContext
 │   │   ├── pages/            # Dashboard, Invoices, InvoiceForm, InvoiceDetail,
-│   │   │                     #   Profile, AICreator, Login, Signup
+│   │   │                     #   Profile, AICreator, Login, Signup, NotFound
 │   │   ├── services/         # Axios API wrappers (auth, invoice, ai, profile)
-│   │   ├── utils/            # pdfExport, formatters
-│   │   ├── App.jsx           # Routes + providers
+│   │   ├── utils/            # pdfExport, format (currency/dates), passwordStrength
+│   │   ├── App.jsx           # Routes + providers + lazy loading + error boundary
 │   │   └── index.css         # Tailwind layers + dark mode component classes
 │   ├── tailwind.config.js    # darkMode: 'class', custom primary palette
 │   └── vite.config.js        # Proxy /api → :5000
 │
 ├── server/                   # Express backend
-│   ├── config/               # Centralized config from env vars
+│   ├── config/               # Centralized config from env vars + startup validation
 │   ├── controllers/          # auth, invoice, ai, profile controllers
 │   ├── middleware/            # auth (JWT verify), errorHandler
 │   ├── models/               # User, Invoice (with auto-number generation)
 │   ├── routes/               # RESTful route definitions
-│   ├── services/             # emailService (Nodemailer + HTML templates)
+│   ├── services/             # emailService (Nodemailer + HTML templates), geminiService
 │   ├── utils/                # AppError class
-│   ├── validators/           # Zod schemas (auth, invoice, profile)
-│   └── server.js             # App entry — middleware chain + route mounting
+│   ├── validators/           # Zod schemas (auth, invoice, profile, ai)
+│   └── server.js             # App entry — middleware chain + graceful shutdown
 │
 ├── .env.example              # Environment variable template
 └── README.md
@@ -228,10 +249,10 @@ npm run build        # outputs to client/dist/
 ### AI (`/api/ai`) — 🔒 Authenticated
 | Method | Path              | Description                    | Rate Limit   |
 | ------ | ----------------- | ------------------------------ | ------------ |
-| POST   | `/generate`       | Generate invoice from text     | 20 / 15 min  |
-| POST   | `/reminder`       | Generate payment reminder      | 20 / 15 min  |
-| POST   | `/insights`       | Generate business insights     | 20 / 15 min  |
-| POST   | `/send-reminder`  | Send reminder email            | 20 / 15 min  |
+| POST   | `/generate-invoice`  | Generate invoice from text     | 20 / 15 min  |
+| POST   | `/payment-reminder`  | Generate payment reminder      | 20 / 15 min  |
+| GET    | `/insights`          | Generate business insights     | 20 / 15 min  |
+| POST   | `/send-reminder`     | Send reminder email            | 20 / 15 min  |
 
 ### Profile (`/api/profile`) — 🔒 Authenticated
 | Method | Path         | Description              |
@@ -252,7 +273,7 @@ npm run build        # outputs to client/dist/
 | `JWT_ACCESS_SECRET`  | **Yes**  | —                               | Secret for signing access tokens          |
 | `JWT_REFRESH_SECRET` | **Yes**  | —                               | Secret for signing refresh tokens         |
 | `CLIENT_URL`         | No       | `http://localhost:5173`         | CORS origin                               |
-| `GEMINI_API_KEY`     | **Yes**  | —                               | Google Gemini API key                     |
+| `GEMINI_API_KEY`     | No       | —                               | Google Gemini API key (AI features disabled without it) |
 | `SMTP_HOST`          | No       | —                               | SMTP server host                          |
 | `SMTP_PORT`          | No       | `587`                           | SMTP server port                          |
 | `SMTP_USER`          | No       | —                               | SMTP username                             |
@@ -269,9 +290,19 @@ npm run build        # outputs to client/dist/
 
 3. **Email preview mode** — When SMTP credentials are not configured, the email service logs to console instead of throwing errors. This allows full development without an email provider.
 
-4. **Silent token refresh** — Axios response interceptor detects 401 errors, queues concurrent requests, refreshes the access token via the httpOnly refresh cookie, then replays all queued requests transparently.
+4. **Silent token refresh with mutex** — Axios response interceptor detects 401 errors. A mutex pattern ensures only one refresh request fires at a time — concurrent 401s are queued and replayed once the single refresh completes.
 
 5. **Dark mode via Tailwind `class` strategy** — Allows manual toggle independent of OS preference while respecting system preference on first visit. Theme state persisted to localStorage.
+
+6. **Env validation at startup** — Missing required env vars (`MONGO_URI`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`) cause immediate exit with a clear error message rather than cryptic runtime failures.
+
+7. **Sort field whitelist** — Query sort parameters are validated against an allowed list, preventing arbitrary field traversal or injection via the sort query string.
+
+8. **Code splitting** — All page components are lazy-loaded via `React.lazy` + `Suspense`, reducing initial bundle size and improving first paint time.
+
+9. **Shared utility modules** — `formatCurrency`, `formatDate`, and `passwordStrength` are extracted into `client/src/utils/` to eliminate duplication across 6+ components.
+
+10. **Error boundary + 404** — React `ErrorBoundary` wraps the entire route tree to catch render errors gracefully. A custom 404 page replaces the generic redirect for unknown routes.
 
 ---
 
