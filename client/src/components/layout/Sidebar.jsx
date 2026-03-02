@@ -53,6 +53,7 @@ const Sidebar = ({ isOpen, onClose }) => {
             <button
               onClick={onClose}
               className="lg:hidden text-slate-400 hover:text-white transition-colors"
+              aria-label="Close navigation menu"
             >
               <X className="w-5 h-5" />
             </button>
