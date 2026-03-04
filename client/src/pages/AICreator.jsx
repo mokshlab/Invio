@@ -10,6 +10,7 @@ import {
   BarChart3,
   Send,
   Copy,
+  Check,
   ArrowRight,
   TrendingUp,
   TrendingDown,
@@ -18,6 +19,10 @@ import {
   Star,
   Lightbulb,
   RefreshCw,
+  User,
+  Phone,
+  MapPin,
+  Hash,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import LoadingSpinner from '../components/common/LoadingSpinner';
@@ -101,6 +106,62 @@ const AICreator = () => {
   );
 };
 
+// ─── Invoice Preview Skeleton (loading state) ───
+const InvoicePreviewSkeleton = () => (
+  <div className="animate-pulse space-y-0">
+    {/* Header bar */}
+    <div className="bg-gray-200 dark:bg-gray-700 rounded-t-xl h-16" />
+    <div className="bg-white dark:bg-gray-800 border border-t-0 border-gray-200 dark:border-gray-700 rounded-b-xl p-6 space-y-5">
+      {/* AI summary */}
+      <div className="h-8 bg-primary-100 dark:bg-primary-900/30 rounded-lg" />
+      {/* Client info grid */}
+      <div className="grid grid-cols-2 gap-4">
+        {[...Array(4)].map((_, i) => (
+          <div key={i} className="space-y-1.5">
+            <div className="h-3 w-16 bg-gray-200 dark:bg-gray-700 rounded" />
+            <div className="h-4 w-32 bg-gray-200 dark:bg-gray-700 rounded" />
+          </div>
+        ))}
+      </div>
+      {/* Items table skeleton */}
+      <div className="space-y-2">
+        <div className="flex gap-4">
+          <div className="h-3 flex-1 bg-gray-200 dark:bg-gray-700 rounded" />
+          <div className="h-3 w-12 bg-gray-200 dark:bg-gray-700 rounded" />
+          <div className="h-3 w-16 bg-gray-200 dark:bg-gray-700 rounded" />
+          <div className="h-3 w-20 bg-gray-200 dark:bg-gray-700 rounded" />
+        </div>
+        {[...Array(3)].map((_, i) => (
+          <div key={i} className="flex gap-4">
+            <div className="h-4 flex-1 bg-gray-100 dark:bg-gray-700/60 rounded" />
+            <div className="h-4 w-12 bg-gray-100 dark:bg-gray-700/60 rounded" />
+            <div className="h-4 w-16 bg-gray-100 dark:bg-gray-700/60 rounded" />
+            <div className="h-4 w-20 bg-gray-100 dark:bg-gray-700/60 rounded" />
+          </div>
+        ))}
+      </div>
+      {/* Totals */}
+      <div className="flex justify-end">
+        <div className="w-48 space-y-2">
+          <div className="flex justify-between">
+            <div className="h-3 w-16 bg-gray-200 dark:bg-gray-700 rounded" />
+            <div className="h-3 w-20 bg-gray-200 dark:bg-gray-700 rounded" />
+          </div>
+          <div className="flex justify-between border-t pt-2">
+            <div className="h-4 w-12 bg-gray-300 dark:bg-gray-600 rounded" />
+            <div className="h-4 w-24 bg-gray-300 dark:bg-gray-600 rounded" />
+          </div>
+        </div>
+      </div>
+      {/* Action buttons */}
+      <div className="flex gap-3 pt-2">
+        <div className="h-10 w-36 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+        <div className="h-10 w-28 bg-gray-200 dark:bg-gray-700 rounded-lg" />
+      </div>
+    </div>
+  </div>
+);
+
 // ═══════════════════════════════════════════════════
 // TAB 1 — Invoice Generator
 // ═══════════════════════════════════════════════════
@@ -159,6 +220,13 @@ const InvoiceGeneratorTab = () => {
     }
   };
 
+  // Compute totals for display
+  const subtotal = result
+    ? (result.items || []).reduce((s, i) => s + i.quantity * i.rate, 0)
+    : 0;
+  const tax = subtotal * ((result?.taxRate || 0) / 100);
+  const total = subtotal + tax - (result?.discount || 0);
+
   return (
     <div className="space-y-6">
       {/* Input area */}
@@ -211,135 +279,180 @@ const InvoiceGeneratorTab = () => {
         )}
       </button>
 
-      {/* Result preview */}
+      {/* Loading skeleton */}
+      {loading && <InvoicePreviewSkeleton />}
+
+      {/* Styled invoice preview card */}
       {result && (
         <motion.div
-          initial={{ opacity: 0, y: 16 }}
+          initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          className="bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-xl p-5 space-y-4"
+          transition={{ duration: 0.4, ease: 'easeOut' }}
+          className="rounded-xl shadow-lg overflow-hidden border border-gray-200 dark:border-gray-700"
         >
-          {result.summary && (
-            <p className="text-sm text-primary-700 bg-primary-50 rounded-lg px-4 py-2">
-              <Sparkles className="w-4 h-4 inline mr-1" />
-              {result.summary}
-            </p>
-          )}
+          {/* Header bar — looks like a real invoice */}
+          <div className="bg-gradient-to-r from-primary-600 to-primary-700 px-6 py-4 flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <FileText className="w-5 h-5 text-white/80" />
+              <span className="text-white font-semibold text-lg">Invoice Preview</span>
+            </div>
+            <span className="text-xs bg-white/20 text-white px-3 py-1 rounded-full font-medium">
+              AI Generated
+            </span>
+          </div>
 
-          {/* Client info */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 text-sm">
-            <div>
-              <span className="text-gray-500 dark:text-gray-400">Client:</span>{' '}
-              <span className="font-medium text-gray-900 dark:text-gray-100">{result.clientName || '—'}</span>
-            </div>
-            <div>
-              <span className="text-gray-500 dark:text-gray-400">Email:</span>{' '}
-              <span className="font-medium text-gray-900 dark:text-gray-100">{result.clientEmail || '—'}</span>
-            </div>
-            {result.clientPhone && (
-              <div>
-                <span className="text-gray-500 dark:text-gray-400">Phone:</span>{' '}
-                <span className="font-medium text-gray-900 dark:text-gray-100">{result.clientPhone}</span>
+          <div className="bg-white dark:bg-gray-800 p-6 space-y-5">
+            {/* AI summary banner */}
+            {result.summary && (
+              <div className="flex items-start gap-2 text-sm text-primary-700 dark:text-primary-300 bg-primary-50 dark:bg-primary-900/30 rounded-lg px-4 py-2.5">
+                <Sparkles className="w-4 h-4 mt-0.5 shrink-0" />
+                <span>{result.summary}</span>
               </div>
             )}
-            {result.clientAddress && (
-              <div>
-                <span className="text-gray-500 dark:text-gray-400">Address:</span>{' '}
-                <span className="font-medium text-gray-900 dark:text-gray-100">{result.clientAddress}</span>
+
+            {/* Client details — styled card */}
+            <div className="bg-gray-50 dark:bg-gray-900/50 rounded-lg p-4">
+              <h3 className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">
+                Bill To
+              </h3>
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full bg-primary-100 dark:bg-primary-900/40 flex items-center justify-center">
+                    <User className="w-4 h-4 text-primary-600 dark:text-primary-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400 dark:text-gray-500">Client</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{result.clientName || '—'}</p>
+                  </div>
+                </div>
+                <div className="flex items-center gap-2.5">
+                  <div className="w-8 h-8 rounded-full bg-blue-100 dark:bg-blue-900/40 flex items-center justify-center">
+                    <Mail className="w-4 h-4 text-blue-600 dark:text-blue-400" />
+                  </div>
+                  <div>
+                    <p className="text-xs text-gray-400 dark:text-gray-500">Email</p>
+                    <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{result.clientEmail || '—'}</p>
+                  </div>
+                </div>
+                {result.clientPhone && (
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-full bg-emerald-100 dark:bg-emerald-900/40 flex items-center justify-center">
+                      <Phone className="w-4 h-4 text-emerald-600 dark:text-emerald-400" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400 dark:text-gray-500">Phone</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{result.clientPhone}</p>
+                    </div>
+                  </div>
+                )}
+                {result.clientAddress && (
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-full bg-amber-100 dark:bg-amber-900/40 flex items-center justify-center">
+                      <MapPin className="w-4 h-4 text-amber-600 dark:text-amber-400" />
+                    </div>
+                    <div>
+                      <p className="text-xs text-gray-400 dark:text-gray-500">Address</p>
+                      <p className="text-sm font-medium text-gray-900 dark:text-gray-100">{result.clientAddress}</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            </div>
+
+            {/* Line items — styled table */}
+            <div>
+              <h3 className="text-xs font-semibold text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-3">
+                Line Items
+              </h3>
+              <div className="overflow-x-auto rounded-lg border border-gray-200 dark:border-gray-700">
+                <table className="w-full text-sm">
+                  <thead>
+                    <tr className="bg-gray-50 dark:bg-gray-900">
+                      <th className="text-left px-4 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        <div className="flex items-center gap-1.5">
+                          <Hash className="w-3 h-3" /> Description
+                        </div>
+                      </th>
+                      <th className="text-right px-4 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Qty
+                      </th>
+                      <th className="text-right px-4 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Rate
+                      </th>
+                      <th className="text-right px-4 py-2.5 text-xs font-semibold text-gray-500 dark:text-gray-400 uppercase tracking-wider">
+                        Amount
+                      </th>
+                    </tr>
+                  </thead>
+                  <tbody className="divide-y divide-gray-100 dark:divide-gray-700">
+                    {(result.items || []).map((item, i) => (
+                      <tr key={i} className="hover:bg-gray-50/50 dark:hover:bg-gray-700/30 transition-colors">
+                        <td className="px-4 py-3 text-gray-900 dark:text-gray-100 font-medium">{item.description}</td>
+                        <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-400">{item.quantity}</td>
+                        <td className="px-4 py-3 text-right text-gray-600 dark:text-gray-400">{fmt(item.rate)}</td>
+                        <td className="px-4 py-3 text-right font-semibold text-gray-900 dark:text-gray-100">
+                          {fmt(item.quantity * item.rate)}
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </div>
+
+            {/* Totals — right-aligned summary */}
+            <div className="flex justify-end">
+              <div className="w-64 space-y-2 text-sm">
+                <div className="flex justify-between text-gray-500 dark:text-gray-400">
+                  <span>Subtotal</span>
+                  <span className="font-medium text-gray-900 dark:text-gray-100">{fmt(subtotal)}</span>
+                </div>
+                {(result.taxRate || 0) > 0 && (
+                  <div className="flex justify-between text-gray-500 dark:text-gray-400">
+                    <span>Tax ({result.taxRate}%)</span>
+                    <span>{fmt(tax)}</span>
+                  </div>
+                )}
+                {(result.discount || 0) > 0 && (
+                  <div className="flex justify-between text-red-500">
+                    <span>Discount</span>
+                    <span>-{fmt(result.discount)}</span>
+                  </div>
+                )}
+                <div className="flex justify-between items-center border-t-2 border-primary-200 dark:border-primary-800 pt-2">
+                  <span className="text-base font-bold text-gray-900 dark:text-gray-100">Total</span>
+                  <span className="text-lg font-bold text-primary-600 dark:text-primary-400">{fmt(total)}</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Notes */}
+            {result.notes && (
+              <div className="bg-amber-50 dark:bg-amber-900/20 border border-amber-100 dark:border-amber-800/40 rounded-lg px-4 py-3">
+                <p className="text-xs font-semibold text-amber-600 dark:text-amber-400 uppercase tracking-wider mb-1">Note</p>
+                <p className="text-sm text-amber-800 dark:text-amber-300">{result.notes}</p>
               </div>
             )}
-          </div>
 
-          {/* Items table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-sm">
-              <thead>
-                <tr className="text-left text-gray-500 dark:text-gray-400 border-b border-gray-200 dark:border-gray-700">
-                  <th className="pb-2 font-medium">Description</th>
-                  <th className="pb-2 font-medium text-right">Qty</th>
-                  <th className="pb-2 font-medium text-right">Rate</th>
-                  <th className="pb-2 font-medium text-right">Amount</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(result.items || []).map((item, i) => (
-                  <tr key={i} className="border-b border-gray-100 dark:border-gray-700">
-                    <td className="py-2 text-gray-900 dark:text-gray-100">{item.description}</td>
-                    <td className="py-2 text-right text-gray-700 dark:text-gray-300">{item.quantity}</td>
-                    <td className="py-2 text-right text-gray-700 dark:text-gray-300">{fmt(item.rate)}</td>
-                    <td className="py-2 text-right font-medium text-gray-900 dark:text-gray-100">
-                      {fmt(item.quantity * item.rate)}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-
-          {/* Tax / Discount / Totals */}
-          <div className="flex justify-end">
-            <div className="text-sm space-y-1 w-48">
-              <div className="flex justify-between">
-                <span className="text-gray-500 dark:text-gray-400">Subtotal</span>
-                <span className="font-medium">
-                  {fmt((result.items || []).reduce((s, i) => s + i.quantity * i.rate, 0))}
-                </span>
-              </div>
-              {result.taxRate > 0 && (
-                <div className="flex justify-between">
-                  <span className="text-gray-500 dark:text-gray-400">Tax ({result.taxRate}%)</span>
-                  <span>
-                    {fmt(
-                      (result.items || []).reduce((s, i) => s + i.quantity * i.rate, 0) *
-                        (result.taxRate / 100)
-                    )}
-                  </span>
-                </div>
-              )}
-              {result.discount > 0 && (
-                <div className="flex justify-between text-red-600">
-                  <span>Discount</span>
-                  <span>-{fmt(result.discount)}</span>
-                </div>
-              )}
-              <div className="flex justify-between border-t border-gray-300 dark:border-gray-600 pt-1 font-bold text-gray-900 dark:text-gray-100">
-                <span>Total</span>
-                <span>
-                  {fmt(
-                    (result.items || []).reduce((s, i) => s + i.quantity * i.rate, 0) *
-                      (1 + (result.taxRate || 0) / 100) -
-                      (result.discount || 0)
-                  )}
-                </span>
-              </div>
+            {/* Action buttons */}
+            <div className="flex gap-3 pt-2 border-t border-gray-100 dark:border-gray-700">
+              <button
+                onClick={handleCreateInvoice}
+                className="btn-primary flex items-center gap-2"
+              >
+                <ArrowRight className="w-4 h-4" />
+                Create Invoice
+              </button>
+              <button
+                onClick={() => {
+                  setResult(null);
+                  setText('');
+                }}
+                className="btn-secondary flex items-center gap-2"
+              >
+                Start Over
+              </button>
             </div>
-          </div>
-
-          {/* Notes */}
-          {result.notes && (
-            <div className="text-sm">
-              <span className="text-gray-500 dark:text-gray-400">Note:</span>{' '}
-              <span className="text-gray-700 dark:text-gray-300">{result.notes}</span>
-            </div>
-          )}
-
-          {/* Action buttons */}
-          <div className="flex gap-3 pt-2">
-            <button
-              onClick={handleCreateInvoice}
-              className="btn-primary flex items-center gap-2"
-            >
-              <ArrowRight className="w-4 h-4" />
-              Create Invoice
-            </button>
-            <button
-              onClick={() => {
-                setResult(null);
-                setText('');
-              }}
-              className="btn-secondary flex items-center gap-2"
-            >
-              Start Over
-            </button>
           </div>
         </motion.div>
       )}
@@ -391,6 +504,7 @@ const PaymentReminderTab = () => {
   const [tone, setTone] = useState('professional');
   const [loading, setLoading] = useState(false);
   const [reminder, setReminder] = useState(null);
+  const [copiedField, setCopiedField] = useState(null);
 
   useEffect(() => {
     (async () => {
@@ -423,9 +537,11 @@ const PaymentReminderTab = () => {
     }
   };
 
-  const copyToClipboard = (text) => {
+  const copyToClipboard = (text, field) => {
     navigator.clipboard.writeText(text);
+    setCopiedField(field);
     toast.success('Copied to clipboard!');
+    setTimeout(() => setCopiedField(null), 2000);
   };
 
   if (loadingInvoices) return <LoadingSpinner />;
@@ -520,10 +636,14 @@ const PaymentReminderTab = () => {
                 Subject
               </span>
               <button
-                onClick={() => copyToClipboard(reminder.subject)}
-                className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+                onClick={() => copyToClipboard(reminder.subject, 'subject')}
+                className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
               >
-                <Copy className="w-3.5 h-3.5" />
+                {copiedField === 'subject' ? (
+                  <Check className="w-3.5 h-3.5 text-emerald-500" />
+                ) : (
+                  <Copy className="w-3.5 h-3.5" />
+                )}
               </button>
             </div>
             <p className="text-sm font-semibold text-gray-900 dark:text-gray-100">{reminder.subject}</p>
@@ -536,10 +656,14 @@ const PaymentReminderTab = () => {
                 Email Body
               </span>
               <button
-                onClick={() => copyToClipboard(reminder.body)}
-                className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300"
+                onClick={() => copyToClipboard(reminder.body, 'body')}
+                className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 transition-colors"
               >
-                <Copy className="w-3.5 h-3.5" />
+                {copiedField === 'body' ? (
+                  <Check className="w-3.5 h-3.5 text-emerald-500" />
+                ) : (
+                  <Copy className="w-3.5 h-3.5" />
+                )}
               </button>
             </div>
             <div className="bg-white dark:bg-gray-700 rounded-lg p-4 border border-gray-100 dark:border-gray-600 text-sm text-gray-700 dark:text-gray-300 whitespace-pre-wrap leading-relaxed">
@@ -567,12 +691,16 @@ const PaymentReminderTab = () => {
           <div className="flex flex-col sm:flex-row gap-3">
             <button
               onClick={() =>
-                copyToClipboard(`Subject: ${reminder.subject}\n\n${reminder.body}`)
+                copyToClipboard(`Subject: ${reminder.subject}\n\n${reminder.body}`, 'full')
               }
               className="btn-secondary flex-1 flex items-center justify-center gap-2"
             >
-              <Copy className="w-4 h-4" />
-              Copy Full Email
+              {copiedField === 'full' ? (
+                <Check className="w-4 h-4 text-emerald-500" />
+              ) : (
+                <Copy className="w-4 h-4" />
+              )}
+              {copiedField === 'full' ? 'Copied!' : 'Copy Full Email'}
             </button>
             <SendReminderButton invoiceId={selectedId} reminderBody={reminder.body} />
           </div>
