@@ -1,10 +1,11 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import { invoiceService } from '../services/invoiceService';
 import { formatCurrency } from '../utils/format';
 import { Plus, Trash2, ArrowLeft, Save } from 'lucide-react';
 import toast from 'react-hot-toast';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import SuccessAnimation from '../components/common/SuccessAnimation';
 
 const emptyItem = { description: '', quantity: 1, rate: 0, amount: 0 };
 
@@ -16,6 +17,9 @@ const InvoiceForm = () => {
   const [loading, setLoading] = useState(isEditing);
   const [saving, setSaving] = useState(false);
   const [errors, setErrors] = useState({});
+  const [showSuccess, setShowSuccess] = useState(false);
+  const [successMsg, setSuccessMsg] = useState('');
+  const formDirty = useRef(false);
 
   const [form, setForm] = useState({
     clientName: '',
@@ -72,15 +76,26 @@ const InvoiceForm = () => {
     }
   }, [form.issueDate, form.dueDate, isEditing]);
 
+  // Unsaved changes warning
+  useEffect(() => {
+    const onBeforeUnload = (e) => {
+      if (formDirty.current) { e.preventDefault(); e.returnValue = ''; }
+    };
+    window.addEventListener('beforeunload', onBeforeUnload);
+    return () => window.removeEventListener('beforeunload', onBeforeUnload);
+  }, []);
+
   // ---- Handlers ----
 
   const handleChange = (e) => {
     const { name, value } = e.target;
+    formDirty.current = true;
     setForm((prev) => ({ ...prev, [name]: value }));
     if (errors[name]) setErrors((prev) => ({ ...prev, [name]: '' }));
   };
 
   const handleItemChange = (index, field, value) => {
+    formDirty.current = true;
     setForm((prev) => {
       const items = [...prev.items];
       items[index] = { ...items[index], [field]: value };
@@ -152,12 +167,14 @@ const InvoiceForm = () => {
 
       if (isEditing) {
         await invoiceService.update(id, payload);
-        toast.success('Invoice updated');
+        setSuccessMsg('Invoice Updated!');
       } else {
         await invoiceService.create(payload);
-        toast.success('Invoice created');
+        setSuccessMsg('Invoice Created!');
       }
-      navigate('/invoices');
+      formDirty.current = false;
+      setShowSuccess(true);
+      setTimeout(() => navigate('/invoices'), 1200);
     } catch (error) {
       toast.error(error.response?.data?.message || 'Failed to save invoice');
     } finally {
@@ -189,7 +206,10 @@ const InvoiceForm = () => {
 
       {/* Client Details */}
       <div className="card mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Client Details</h2>
+        <div className="flex items-center gap-3 mb-4">
+          <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 text-xs font-bold">1</span>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Client Details</h2>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -251,7 +271,10 @@ const InvoiceForm = () => {
 
       {/* Dates */}
       <div className="card mb-6">
-        <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Invoice Dates</h2>
+        <div className="flex items-center gap-3 mb-4">
+          <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 text-xs font-bold">2</span>
+          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Invoice Dates</h2>
+        </div>
         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -286,7 +309,10 @@ const InvoiceForm = () => {
       {/* Line Items */}
       <div className="card mb-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Items</h2>
+          <div className="flex items-center gap-3">
+            <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 text-xs font-bold">3</span>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Items</h2>
+          </div>
           <button
             type="button"
             onClick={addItem}
@@ -334,15 +360,18 @@ const InvoiceForm = () => {
                 />
               </div>
               <div className="col-span-4 md:col-span-2">
-                <input
-                  type="number"
-                  value={item.rate}
-                  onChange={(e) => handleItemChange(index, 'rate', e.target.value)}
-                  className="input-field text-sm"
-                  placeholder="Rate"
-                  min="0"
-                  step="any"
-                />
+                <div className="relative">
+                  <span className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400 dark:text-gray-500 text-sm pointer-events-none">$</span>
+                  <input
+                    type="number"
+                    value={item.rate}
+                    onChange={(e) => handleItemChange(index, 'rate', e.target.value)}
+                    className="input-field text-sm pl-7"
+                    placeholder="Rate"
+                    min="0"
+                    step="any"
+                  />
+                </div>
               </div>
               <div className="col-span-3 md:col-span-2 flex items-center justify-end h-[42px]">
                 <span className="text-sm font-medium text-gray-900 dark:text-gray-100">
@@ -371,9 +400,10 @@ const InvoiceForm = () => {
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Notes & Terms */}
         <div className="card">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">
-            Notes & Terms
-          </h2>
+          <div className="flex items-center gap-3 mb-4">
+            <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 text-xs font-bold">4</span>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Notes & Terms</h2>
+          </div>
           <div className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-1">
@@ -405,8 +435,11 @@ const InvoiceForm = () => {
         </div>
 
         {/* Financial summary */}
-        <div className="card">
-          <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100 mb-4">Summary</h2>
+        <div className="card bg-gray-50 dark:bg-gray-800/50">
+          <div className="flex items-center gap-3 mb-4">
+            <span className="flex items-center justify-center w-7 h-7 rounded-full bg-primary-100 dark:bg-primary-900/30 text-primary-700 dark:text-primary-400 text-xs font-bold">5</span>
+            <h2 className="text-lg font-semibold text-gray-900 dark:text-gray-100">Summary</h2>
+          </div>
           <div className="space-y-3">
             <div className="flex justify-between text-sm">
               <span className="text-gray-500 dark:text-gray-400">Subtotal</span>
@@ -452,9 +485,9 @@ const InvoiceForm = () => {
               </span>
             </div>
 
-            <div className="border-t border-gray-200 dark:border-gray-700 pt-3 flex justify-between">
+            <div className="border-t-2 border-gray-900 dark:border-gray-100 pt-3 flex justify-between items-baseline">
               <span className="font-semibold text-gray-900 dark:text-gray-100">Total</span>
-              <span className="text-xl font-bold text-gray-900 dark:text-gray-100">
+              <span className="text-2xl font-bold text-primary-700 dark:text-primary-400">
                 {formatCurrency(total > 0 ? total : 0)}
               </span>
             </div>
@@ -496,6 +529,8 @@ const InvoiceForm = () => {
           )}
         </button>
       </div>
+
+      <SuccessAnimation show={showSuccess} message={successMsg} />
     </div>
   );
 };
