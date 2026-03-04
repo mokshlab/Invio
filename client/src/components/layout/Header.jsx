@@ -1,4 +1,4 @@
-import { Menu, Bell, Sun, Moon } from 'lucide-react';
+import { Menu, Sun, Moon } from 'lucide-react';
 import { useAuth } from '../../context/AuthContext';
 import { useTheme } from '../../context/ThemeContext';
 
@@ -31,10 +31,6 @@ const Header = ({ onMenuClick }) => {
             title={dark ? 'Switch to light mode' : 'Switch to dark mode'}
           >
             {dark ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
-          </button>
-
-          <button className="p-2 text-gray-500 hover:text-gray-700 dark:text-gray-400 dark:hover:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-800 rounded-lg relative transition-colors" aria-label="Notifications">
-            <Bell className="w-5 h-5" />
           </button>
 
           {/* Avatar (desktop only) */}

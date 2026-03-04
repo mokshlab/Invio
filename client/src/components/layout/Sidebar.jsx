@@ -7,6 +7,7 @@ import {
   UserCircle,
   LogOut,
   X,
+  Plus,
 } from 'lucide-react';
 
 const navItems = [
@@ -78,6 +79,18 @@ const Sidebar = ({ isOpen, onClose }) => {
                 {item.name}
               </NavLink>
             ))}
+
+            {/* Quick Action CTA */}
+            <div className="pt-4 mt-3 border-t border-slate-800">
+              <NavLink
+                to="/invoices/new"
+                onClick={onClose}
+                className="flex items-center gap-2 px-3 py-2.5 rounded-lg text-sm font-medium bg-primary-600 text-white hover:bg-primary-500 transition-colors"
+              >
+                <Plus className="w-4 h-4" />
+                New Invoice
+              </NavLink>
+            </div>
           </nav>
 
           {/* ---- User section ---- */}
