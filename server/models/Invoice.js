@@ -1,4 +1,5 @@
 import mongoose from 'mongoose';
+import crypto from 'crypto';
 
 const invoiceItemSchema = new mongoose.Schema(
   {
@@ -114,6 +115,14 @@ const invoiceSchema = new mongoose.Schema(
       default: 0,
     },
 
+    // ---- Shareable public link ----
+    shareToken: {
+      type: String,
+      unique: true,
+      sparse: true, // allows null on old docs without breaking the unique index
+      index: true,
+    },
+
     // ---- Extra ----
     notes: {
       type: String,
@@ -151,6 +160,11 @@ invoiceSchema.pre('validate', function (next) {
 
   // Prevent negative totals
   if (this.total < 0) this.total = 0;
+
+  // Generate share token on first save if missing
+  if (!this.shareToken) {
+    this.shareToken = crypto.randomBytes(16).toString('hex');
+  }
 
   next();
 });

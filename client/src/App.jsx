@@ -18,6 +18,7 @@ const InvoiceDetail = lazy(() => import('./pages/InvoiceDetail'));
 const Profile = lazy(() => import('./pages/Profile'));
 const AICreator = lazy(() => import('./pages/AICreator'));
 const NotFound = lazy(() => import('./pages/NotFound'));
+const PublicInvoice = lazy(() => import('./pages/PublicInvoice'));
 
 const App = () => {
   return (
@@ -42,6 +43,7 @@ const App = () => {
           {/* Public routes */}
           <Route path="/login" element={<Login />} />
           <Route path="/signup" element={<Signup />} />
+          <Route path="/invoice/:token" element={<PublicInvoice />} />
 
           {/* Protected routes — wrapped in layout */}
           <Route element={<ProtectedRoute />}>
