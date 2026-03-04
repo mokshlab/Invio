@@ -5,6 +5,8 @@ import { useTheme } from '../context/ThemeContext';
 import { formatCurrency, fmtCompact } from '../utils/format';
 import { invoiceService } from '../services/invoiceService';
 import { aiService } from '../services/aiService';
+import AnimatedNumber from '../components/common/AnimatedNumber';
+import EmptyState from '../components/common/EmptyState';
 import {
   FileText,
   DollarSign,
@@ -104,6 +106,28 @@ const Dashboard = () => {
     ? stats.monthlyRevenue[stats.monthlyRevenue.length - 1].revenue
     : 0;
 
+  // Compute previous month revenue for trend
+  const prevMonthRevenue = stats?.monthlyRevenue?.length >= 2
+    ? stats.monthlyRevenue[stats.monthlyRevenue.length - 2].revenue
+    : 0;
+  const revenueTrendPct = prevMonthRevenue > 0
+    ? Math.round(((currentMonthRevenue - prevMonthRevenue) / prevMonthRevenue) * 100)
+    : null;
+
+  const overdueCount = stats
+    ? (stats.statusBreakdown || []).filter((b) => b._id === 'overdue').reduce((s, b) => s + b.count, 0)
+    : 0;
+
+  // Build smart greeting subtitle
+  const greetingParts = [];
+  if (overdueCount > 0) greetingParts.push(`${overdueCount} overdue invoice${overdueCount > 1 ? 's' : ''} need attention`);
+  if (pendingCount > 0 && overdueCount === 0) greetingParts.push(`${pendingCount} pending invoice${pendingCount > 1 ? 's' : ''}`);
+  if (currentMonthRevenue > 0) greetingParts.push(`${fmt(currentMonthRevenue)} earned this month`);
+  const smartSubtitle = greetingParts.length > 0
+    ? greetingParts.join(' · ')
+    : 'Create your first invoice to get started.';
+
+
   const statusBreakdown = stats?.statusBreakdown || [];
   const monthlyRevenue = stats?.monthlyRevenue || [];
   const topClients = stats?.topClients || [];
@@ -127,27 +151,34 @@ const Dashboard = () => {
   const cards = [
     {
       label: 'Total Invoices',
-      value: totalInvoices,
+      raw: totalInvoices,
       icon: FileText,
-      color: 'bg-primary-50 text-primary-600',
+      color: 'bg-primary-50 text-primary-600 dark:bg-primary-900/20 dark:text-primary-400',
+      isCurrency: false,
     },
     {
       label: 'Total Revenue',
-      value: fmt(totalRevenue),
+      raw: totalRevenue,
       icon: DollarSign,
-      color: 'bg-emerald-50 text-emerald-600',
+      color: 'bg-emerald-50 text-emerald-600 dark:bg-emerald-900/20 dark:text-emerald-400',
+      accent: true, // visually prominent
+      isCurrency: true,
     },
     {
       label: 'Pending',
-      value: pendingCount,
+      raw: pendingCount,
       icon: Clock,
-      color: 'bg-amber-50 text-amber-600',
+      color: 'bg-amber-50 text-amber-600 dark:bg-amber-900/20 dark:text-amber-400',
+      isCurrency: false,
+      warn: pendingCount > 0,
     },
     {
       label: 'This Month',
-      value: fmt(currentMonthRevenue),
+      raw: currentMonthRevenue,
       icon: TrendingUp,
-      color: 'bg-violet-50 text-violet-600',
+      color: 'bg-violet-50 text-violet-600 dark:bg-violet-900/20 dark:text-violet-400',
+      isCurrency: true,
+      trend: revenueTrendPct,
     },
   ];
 
@@ -161,13 +192,13 @@ const Dashboard = () => {
           <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
             Welcome back, {user?.name?.split(' ')[0] || 'there'}!
           </h1>
-          <p className="text-gray-500 dark:text-gray-400 mt-1">
-            Here&apos;s an overview of your invoicing activity.
+          <p className="text-gray-500 dark:text-gray-400 mt-1 text-sm">
+            {smartSubtitle}
           </p>
         </div>
         <button
           onClick={() => navigate('/invoices/new')}
-          className="btn-primary flex items-center gap-2 self-start"
+          className="btn-primary flex items-center gap-2 self-start shadow-md shadow-primary-600/20 hover:shadow-lg hover:shadow-primary-600/30 transition-shadow"
         >
           <Plus className="w-4 h-4" />
           New Invoice
@@ -182,16 +213,41 @@ const Dashboard = () => {
             initial={{ opacity: 0, y: 16 }}
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay: i * 0.05 }}
-            className="card"
+            className={`card relative overflow-hidden ${
+              stat.accent ? 'ring-1 ring-emerald-200 dark:ring-emerald-800' : ''
+            }`}
           >
+            {stat.accent && (
+              <div className="absolute top-0 right-0 w-24 h-24 bg-emerald-500/5 rounded-full -translate-y-1/2 translate-x-1/2" />
+            )}
             <div className="flex items-center justify-between mb-3">
               <div
                 className={`w-10 h-10 rounded-lg ${stat.color} flex items-center justify-center`}
               >
                 <stat.icon className="w-5 h-5" />
               </div>
+              {stat.trend != null && stat.trend !== 0 && (
+                <span className={`text-xs font-semibold px-1.5 py-0.5 rounded-md ${
+                  stat.trend > 0
+                    ? 'text-emerald-700 bg-emerald-50 dark:text-emerald-400 dark:bg-emerald-900/30'
+                    : 'text-red-700 bg-red-50 dark:text-red-400 dark:bg-red-900/30'
+                }`}>
+                  {stat.trend > 0 ? '+' : ''}{stat.trend}%
+                </span>
+              )}
+              {stat.warn && (
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75" />
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500" />
+                </span>
+              )}
             </div>
-            <p className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">{stat.value}</p>
+            <div className="text-xl sm:text-2xl font-bold text-gray-900 dark:text-gray-100">
+              <AnimatedNumber
+                value={stat.raw}
+                formatter={stat.isCurrency ? (n) => fmt(n) : undefined}
+              />
+            </div>
             <p className="text-xs sm:text-sm text-gray-500 dark:text-gray-400 mt-1">{stat.label}</p>
           </motion.div>
         ))}
@@ -205,11 +261,12 @@ const Dashboard = () => {
             Monthly Revenue
           </h2>
           {revenueChartData.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-64 text-gray-400 dark:text-gray-500">
-              <TrendingUp className="w-12 h-12 mb-3 stroke-1" />
-              <p className="text-sm">No paid invoices yet</p>
-              <p className="text-xs mt-1">Revenue chart will appear here</p>
-            </div>
+            <EmptyState
+              icon={TrendingUp}
+              title="No revenue data yet"
+              description="Revenue chart will appear once you have paid invoices."
+              compact
+            />
           ) : (
             <ResponsiveContainer width="100%" height={280}>
               <BarChart data={revenueChartData} barSize={32}>
@@ -249,10 +306,12 @@ const Dashboard = () => {
             Status Breakdown
           </h2>
           {pieData.length === 0 ? (
-            <div className="flex flex-col items-center justify-center h-64 text-gray-400 dark:text-gray-500">
-              <FileText className="w-12 h-12 mb-3 stroke-1" />
-              <p className="text-sm">No data available</p>
-            </div>
+            <EmptyState
+              icon={FileText}
+              title="No status data"
+              description="Create invoices to see your status breakdown."
+              compact
+            />
           ) : (
             <ResponsiveContainer width="100%" height={280}>
               <PieChart>
@@ -310,13 +369,17 @@ const Dashboard = () => {
           </div>
 
           {recentInvoices.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-gray-400 dark:text-gray-500">
-              <FileText className="w-12 h-12 mb-3 stroke-1" />
-              <p className="text-sm">No invoices yet</p>
-              <p className="text-xs mt-1">
-                Create your first invoice to get started
-              </p>
-            </div>
+            <EmptyState
+              icon={FileText}
+              title="No invoices yet"
+              description="Create your first invoice to see it here."
+              compact
+              action={
+                <button onClick={() => navigate('/invoices/new')} className="btn-primary text-sm flex items-center gap-2">
+                  <Plus className="w-3.5 h-3.5" /> Create Invoice
+                </button>
+              }
+            />
           ) : (
             <div className="space-y-3">
               {recentInvoices.map((inv) => (
@@ -362,11 +425,12 @@ const Dashboard = () => {
             Top Clients
           </h2>
           {topClients.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-gray-400 dark:text-gray-500">
-              <Users className="w-12 h-12 mb-3 stroke-1" />
-              <p className="text-sm">No client data yet</p>
-              <p className="text-xs mt-1">Clients will appear as you create invoices</p>
-            </div>
+            <EmptyState
+              icon={Users}
+              title="No clients yet"
+              description="Your top clients will appear as you invoice them."
+              compact
+            />
           ) : (
             <div className="space-y-3">
               {topClients.map((client, i) => (
@@ -427,11 +491,17 @@ const Dashboard = () => {
 
         {/* Not loaded yet */}
         {!insights && !insightsLoading && !insightsError && (
-          <div className="flex flex-col items-center justify-center py-8 text-gray-400 dark:text-gray-500">
-            <Sparkles className="w-12 h-12 mb-3 stroke-1" />
-            <p className="text-sm">Click &quot;Generate&quot; to get AI-powered business insights</p>
-            <p className="text-xs mt-1">Requires at least 2 invoices</p>
-          </div>
+          <EmptyState
+            icon={Sparkles}
+            title="AI-powered business insights"
+            description="Get revenue trends, payment health scores, and actionable recommendations. Requires at least 2 invoices."
+            compact
+            action={
+              <button onClick={fetchInsights} className="btn-primary text-sm flex items-center gap-2">
+                <Sparkles className="w-3.5 h-3.5" /> Generate Insights
+              </button>
+            }
+          />
         )}
 
         {/* Error */}
