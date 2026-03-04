@@ -8,6 +8,7 @@ import {
   getInvoiceStats,
   sendInvoiceEmail,
   getEmailStatus,
+  bulkDeleteInvoices,
 } from '../controllers/invoiceController.js';
 import { validateCreateInvoice, validateUpdateInvoice } from '../validators/invoiceValidator.js';
 import { protect } from '../middleware/auth.js';
@@ -20,6 +21,7 @@ router.use(protect);
 // Stats & email status must come BEFORE /:id to avoid param capture
 router.get('/stats', getInvoiceStats);
 router.get('/email-status', getEmailStatus);
+router.post('/bulk-delete', bulkDeleteInvoices);
 
 router.route('/')
   .get(getInvoices)

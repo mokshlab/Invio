@@ -314,3 +314,32 @@ export const sendInvoiceEmail = async (req, res, next) => {
 export const getEmailStatus = (req, res) => {
   res.json({ configured: isEmailConfigured() });
 };
+
+// @desc    Bulk-delete invoices by IDs
+// @route   POST /api/invoices/bulk-delete
+// @access  Private
+export const bulkDeleteInvoices = async (req, res, next) => {
+  try {
+    const { ids } = req.body;
+
+    if (!Array.isArray(ids) || ids.length === 0) {
+      throw new AppError('Please provide an array of invoice IDs', 400);
+    }
+
+    if (ids.length > 50) {
+      throw new AppError('Cannot delete more than 50 invoices at once', 400);
+    }
+
+    const result = await Invoice.deleteMany({
+      _id: { $in: ids },
+      user: req.user._id,
+    });
+
+    res.json({
+      message: `${result.deletedCount} invoice${result.deletedCount !== 1 ? 's' : ''} deleted successfully`,
+      deletedCount: result.deletedCount,
+    });
+  } catch (error) {
+    next(error);
+  }
+};
