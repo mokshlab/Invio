@@ -13,9 +13,12 @@ import {
   CheckCircle,
   Clock,
   AlertTriangle,
+  Link2,
 } from 'lucide-react';
+import ActivityTimeline from '../components/common/ActivityTimeline';
 import toast from 'react-hot-toast';
 import LoadingSpinner from '../components/common/LoadingSpinner';
+import SuccessAnimation from '../components/common/SuccessAnimation';
 import { downloadInvoicePDF } from '../utils/pdfExport';
 
 const STATUS_CONFIG = {
@@ -32,6 +35,7 @@ const InvoiceDetail = () => {
   const [loading, setLoading] = useState(true);
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const [sending, setSending] = useState(false);
+  const [showSuccess, setShowSuccess] = useState(false);
 
   useEffect(() => {
     (async () => {
@@ -51,7 +55,12 @@ const InvoiceDetail = () => {
     try {
       const { data } = await invoiceService.update(id, { status: newStatus });
       setInvoice(data.invoice);
-      toast.success(`Invoice marked as ${newStatus}`);
+      if (newStatus === 'paid') {
+        setShowSuccess(true);
+        setTimeout(() => setShowSuccess(false), 1800);
+      } else {
+        toast.success(`Invoice marked as ${newStatus}`);
+      }
     } catch {
       toast.error('Failed to update status');
     }
@@ -111,6 +120,19 @@ const InvoiceDetail = () => {
           >
             <Pencil className="w-4 h-4" />
             Edit
+          </button>
+          <button
+            onClick={() => {
+              navigator.clipboard.writeText(
+                `${window.location.origin}/invoice/${invoice.shareToken}`
+              );
+              toast.success('Share link copied!');
+            }}
+            aria-label="Copy share link"
+            className="btn-secondary flex items-center gap-2 text-sm"
+          >
+            <Link2 className="w-4 h-4" />
+            <span className="hidden sm:inline">Share</span>
           </button>
           <button
             onClick={() => window.print()}
@@ -348,6 +370,10 @@ const InvoiceDetail = () => {
           </div>
         )}
       </div>
+
+      <ActivityTimeline invoiceId={id} />
+
+      <SuccessAnimation show={showSuccess} message="Invoice Paid!" />
     </div>
   );
 };
