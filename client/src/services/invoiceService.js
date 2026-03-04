@@ -10,4 +10,5 @@ export const invoiceService = {
   getStats: () => api.get('/invoices/stats'),
   sendEmail: (id) => api.post(`/invoices/${id}/send`),
   getEmailStatus: () => api.get('/invoices/email-status'),
+  getActivity: (id) => api.get(`/invoices/${id}/activity`),
 };

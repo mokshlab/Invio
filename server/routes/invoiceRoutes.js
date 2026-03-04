@@ -9,6 +9,7 @@ import {
   sendInvoiceEmail,
   getEmailStatus,
   bulkDeleteInvoices,
+  getInvoiceActivity,
 } from '../controllers/invoiceController.js';
 import { validateCreateInvoice, validateUpdateInvoice } from '../validators/invoiceValidator.js';
 import { protect } from '../middleware/auth.js';
@@ -28,6 +29,7 @@ router.route('/')
   .post(validateCreateInvoice, createInvoice);
 
 router.post('/:id/send', sendInvoiceEmail);
+router.get('/:id/activity', getInvoiceActivity);
 
 router.route('/:id')
   .get(getInvoiceById)

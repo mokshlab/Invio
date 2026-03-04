@@ -4,7 +4,9 @@
  * All handlers are scoped to the authenticated user via req.user._id.
  */
 import Invoice from '../models/Invoice.js';
+import AuditLog from '../models/AuditLog.js';
 import AppError from '../utils/AppError.js';
+import { logActivity } from '../services/auditService.js';
 import {
   sendEmail,
   buildInvoiceEmail,
@@ -30,6 +32,12 @@ export const createInvoice = async (req, res, next) => {
     });
 
     res.status(201).json({ invoice });
+    // Fire-and-forget — audit never blocks the response
+    logActivity(req.user._id, invoice._id, 'created', {
+      invoiceNumber: invoice.invoiceNumber,
+      clientName: invoice.clientName,
+      total: invoice.total,
+    });
   } catch (error) {
     next(error);
   }
@@ -126,6 +134,9 @@ export const updateInvoice = async (req, res, next) => {
       throw new AppError('Invoice not found', 404);
     }
 
+    // Capture previous status before mutating — needed for the audit log
+    const prevStatus = invoice.status;
+
     // Update allowed fields
     const allowedFields = [
       'clientName', 'clientEmail', 'clientPhone', 'clientAddress',
@@ -146,6 +157,19 @@ export const updateInvoice = async (req, res, next) => {
     await invoice.save(); // triggers pre-save recalculation
 
     res.json({ invoice });
+
+    // Fire-and-forget audit log — never blocks the response
+    if (req.body.status && req.body.status !== prevStatus) {
+      // Status transition is worth calling out explicitly in the feed
+      logActivity(req.user._id, invoice._id, 'status_changed', {
+        from: prevStatus,
+        to: invoice.status,
+      });
+    } else {
+      logActivity(req.user._id, invoice._id, 'updated', {
+        updatedFields: Object.keys(req.body),
+      });
+    }
   } catch (error) {
     next(error);
   }
@@ -166,6 +190,9 @@ export const deleteInvoice = async (req, res, next) => {
     }
 
     res.json({ message: 'Invoice deleted successfully' });
+    logActivity(req.user._id, invoice._id, 'deleted', {
+      invoiceNumber: invoice.invoiceNumber,
+    });
   } catch (error) {
     next(error);
   }
@@ -303,6 +330,10 @@ export const sendInvoiceEmail = async (req, res, next) => {
       preview: result.preview || false,
       invoice,
     });
+    logActivity(req.user._id, invoice._id, 'email_sent', {
+      to: invoice.clientEmail,
+      preview: result.preview || false,
+    });
   } catch (error) {
     next(error);
   }
@@ -313,6 +344,32 @@ export const sendInvoiceEmail = async (req, res, next) => {
 // @access  Private
 export const getEmailStatus = (req, res) => {
   res.json({ configured: isEmailConfigured() });
+};
+
+// @desc    Get activity log for an invoice
+// @route   GET /api/invoices/:id/activity
+// @access  Private
+export const getInvoiceActivity = async (req, res, next) => {
+  try {
+    // Verify the invoice belongs to this user before returning its logs
+    const invoice = await Invoice.findOne({
+      _id: req.params.id,
+      user: req.user._id,
+    });
+
+    if (!invoice) {
+      throw new AppError('Invoice not found', 404);
+    }
+
+    const logs = await AuditLog.find({ invoice: req.params.id })
+      .sort({ createdAt: -1 })
+      .limit(50)
+      .select('action details createdAt');
+
+    res.json({ activity: logs });
+  } catch (error) {
+    next(error);
+  }
 };
 
 // @desc    Bulk-delete invoices by IDs
