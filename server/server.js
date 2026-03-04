@@ -18,6 +18,7 @@ import authRoutes from './routes/authRoutes.js';
 import invoiceRoutes from './routes/invoiceRoutes.js';
 import profileRoutes from './routes/profileRoutes.js';
 import aiRoutes from './routes/aiRoutes.js';
+import { startCronJobs } from './services/cronService.js';
 
 const app = express();
 
@@ -89,6 +90,7 @@ app.use(errorHandler);
 // --------------- Start Server ---------------
 const startServer = async () => {
   await connectDB();
+  startCronJobs();
   const server = app.listen(config.port, () => {
     console.log(
       `\n🚀 Server running on port ${config.port} in ${config.nodeEnv} mode\n`
