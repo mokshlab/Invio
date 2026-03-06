@@ -57,7 +57,7 @@ const authLimiter = rateLimit({
 // Stricter rate limit for AI endpoints (expensive Gemini calls)
 const aiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 20, // 20 AI requests per 15 min
+  max: 50, // 50 AI requests per 15 min
   standardHeaders: true,
   legacyHeaders: false,
   message: { message: 'AI rate limit reached, please try again later.' },
