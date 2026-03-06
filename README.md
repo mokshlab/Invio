@@ -8,6 +8,8 @@ A full-stack MERN application for creating, managing, and sending professional i
 ![React](https://img.shields.io/badge/React-18-61DAFB)
 ![Node](https://img.shields.io/badge/Node.js-18+-339933)
 
+> **[Live Demo](https://invio-app.vercel.app)** · Frontend on Vercel · Backend on Render
+
 ---
 
 ## Features
@@ -16,6 +18,10 @@ A full-stack MERN application for creating, managing, and sending professional i
 - **Invoice CRUD** — Create, read, update, and delete invoices with line items, tax, and discounts
 - **Auto-generated invoice numbers** — Sequential `INV-YYYY-NNNN` format with race-condition retry logic
 - **Status management** — Draft → Sent → Paid / Overdue lifecycle
+- **Overdue detection** — Daily cron job auto-marks overdue invoices
+- **Activity audit log** — Full timeline of invoice actions (created, updated, emailed, status changed)
+- **Shareable invoice links** — Token-based public URLs for client-facing invoices (no login required)
+- **Bulk operations** — Multi-select and bulk-delete invoices
 - **PDF export** — Download any invoice as a styled PDF
 - **Print-optimized CSS** — Clean print layout with hidden UI chrome
 
@@ -136,11 +142,12 @@ Invio/
 ├── client/                   # React frontend
 │   ├── src/
 │   │   ├── components/
-│   │   │   ├── common/       # LoadingSpinner, SkeletonLoader, ProtectedRoute, ErrorBoundary
+│   │   │   ├── common/       # LoadingSpinner, SkeletonLoader, ProtectedRoute, ErrorBoundary,
+│   │   │   │                  #   AnimatedNumber, EmptyState, SuccessAnimation, Breadcrumbs, ActivityTimeline
 │   │   │   └── layout/       # Layout, Header (theme toggle), Sidebar
 │   │   ├── context/          # AuthContext, ThemeContext
 │   │   ├── pages/            # Dashboard, Invoices, InvoiceForm, InvoiceDetail,
-│   │   │                     #   Profile, AICreator, Login, Signup, NotFound
+│   │   │                     #   Profile, AICreator, Login, Signup, NotFound, PublicInvoice
 │   │   ├── services/         # Axios API wrappers (auth, invoice, ai, profile)
 │   │   ├── utils/            # pdfExport, format (currency/dates), passwordStrength
 │   │   ├── App.jsx           # Routes + providers + lazy loading + error boundary
@@ -152,14 +159,15 @@ Invio/
 │   ├── config/               # Centralized config from env vars + startup validation
 │   ├── controllers/          # auth, invoice, ai, profile controllers
 │   ├── middleware/            # auth (JWT verify), errorHandler
-│   ├── models/               # User, Invoice (with auto-number generation)
-│   ├── routes/               # RESTful route definitions
-│   ├── services/             # emailService (Nodemailer + HTML templates), geminiService
-│   ├── utils/                # AppError class
+│   ├── models/               # User, Invoice (with auto-number generation), AuditLog
+│   ├── routes/               # RESTful route definitions + public (no-auth) routes
+│   ├── services/             # emailService, geminiService, auditService, cronService
+│   ├── utils/                # AppError class, JWT token helpers
 │   ├── validators/           # Zod schemas (auth, invoice, profile, ai)
 │   └── server.js             # App entry — middleware chain + graceful shutdown
 │
 ├── .env.example              # Environment variable template
+├── client/vercel.json        # Vercel SPA rewrite config
 └── README.md
 ```
 
@@ -241,10 +249,11 @@ npm run build        # outputs to client/dist/
 | GET    | `/email-status`   | Check if SMTP is configured        |
 | GET    | `/:id`            | Get invoice by ID                  |
 | POST   | `/`               | Create invoice (auto-generates number) |
-| PUT    | `/:id`            | Update invoice                     |
-| PATCH  | `/:id/status`     | Change status (sent/paid/overdue)  |
+| PUT    | `/:id`            | Update invoice (including status)  |
 | DELETE | `/:id`            | Delete invoice                     |
 | POST   | `/:id/send`       | Send invoice via email             |
+| GET    | `/:id/activity`   | Get invoice activity log           |
+| POST   | `/bulk-delete`    | Bulk-delete invoices by IDs        |
 
 ### AI (`/api/ai`) — 🔒 Authenticated
 | Method | Path              | Description                    | Rate Limit   |
@@ -253,6 +262,11 @@ npm run build        # outputs to client/dist/
 | POST   | `/payment-reminder`  | Generate payment reminder      | 20 / 15 min  |
 | GET    | `/insights`          | Generate business insights     | 20 / 15 min  |
 | POST   | `/send-reminder`     | Send reminder email            | 20 / 15 min  |
+
+### Public (`/api/public`) — No Auth
+| Method | Path                    | Description                       |
+| ------ | ----------------------- | --------------------------------- |
+| GET    | `/invoices/:token`      | View shared invoice (read-only)   |
 
 ### Profile (`/api/profile`) — 🔒 Authenticated
 | Method | Path         | Description              |
@@ -303,6 +317,38 @@ npm run build        # outputs to client/dist/
 9. **Shared utility modules** — `formatCurrency`, `formatDate`, and `passwordStrength` are extracted into `client/src/utils/` to eliminate duplication across 6+ components.
 
 10. **Error boundary + 404** — React `ErrorBoundary` wraps the entire route tree to catch render errors gracefully. A custom 404 page replaces the generic redirect for unknown routes.
+
+---
+
+## Deployment
+
+### Backend → Render
+
+1. Create a **Web Service** on [Render](https://render.com)
+2. Connect your GitHub repo, set **Root Directory** to `server`
+3. Set **Build Command**: `npm install` and **Start Command**: `node server.js`
+4. Add environment variables in Render dashboard:
+   - `NODE_ENV=production`
+   - `MONGO_URI`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`
+   - `CLIENT_URL=https://your-app.vercel.app`
+   - `GEMINI_API_KEY` (optional)
+   - `SMTP_*` (optional)
+5. Health check path: `/api/health`
+
+### Frontend → Vercel
+
+1. Import your GitHub repo on [Vercel](https://vercel.com)
+2. Set **Root Directory** to `client`
+3. Framework preset: **Vite** (auto-detected)
+4. Add environment variable:
+   - `VITE_API_URL=https://your-backend.onrender.com/api`
+5. Deploy — `vercel.json` handles SPA rewrites automatically
+
+### Cross-Domain Notes
+
+- Cookies use `sameSite: 'none'` and `secure: true` in production for cross-origin auth
+- CORS is configured with `credentials: true` and the Vercel frontend URL as `origin`
+- Render provides HTTPS by default (required for secure cookies)
 
 ---
 
