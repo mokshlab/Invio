@@ -3,7 +3,7 @@ import config from '../config/index.js';
 
 /**
  * Gemini AI Service — centralised prompt engineering & API calls.
- * Uses Gemini 2.0 Flash model for fast, high-quality generation.
+ * Uses Gemini 2.5 Flash model for fast, high-quality generation.
  */
 
 let genAI = null;
@@ -17,7 +17,7 @@ const getModel = () => {
       );
     }
     genAI = new GoogleGenerativeAI(config.geminiApiKey);
-    model = genAI.getGenerativeModel({ model: 'gemini-2.0-flash' });
+    model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
   }
   return model;
 };
