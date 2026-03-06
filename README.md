@@ -1,322 +1,89 @@
-# Invio — AI-Powered Invoice Generator
+# Invio — AI-Powered Invoice Management
 
-A full-stack MERN application for creating, managing, and sending professional invoices with integrated AI capabilities powered by Google Gemini.
+A production-ready full-stack invoice management platform with AI-powered generation, real-time analytics, and automated workflows — built with the MERN stack and Google Gemini.
+
+> **[Live Demo](https://invio-iota.vercel.app)** · Deployed on Vercel + Render
 
 ![MERN](https://img.shields.io/badge/Stack-MERN-green)
 ![AI](https://img.shields.io/badge/AI-Google%20Gemini-blue)
-![License](https://img.shields.io/badge/License-MIT-yellow)
 ![React](https://img.shields.io/badge/React-18-61DAFB)
 ![Node](https://img.shields.io/badge/Node.js-18+-339933)
 
-> **[Live Demo](https://invio-app.vercel.app)** · Frontend on Vercel · Backend on Render
+---
+
+## What It Does
+
+Invio lets users create, manage, and send professional invoices — either manually or through natural language AI generation. Users describe what they need in plain English, and Gemini converts it into structured invoice data. The platform includes a full analytics dashboard, automated overdue detection, email integration, and shareable public invoice links.
 
 ---
 
-## Features
+## Key Features
 
-### Core
-- **Invoice CRUD** — Create, read, update, and delete invoices with line items, tax, and discounts
-- **Auto-generated invoice numbers** — Sequential `INV-YYYY-NNNN` format with race-condition retry logic
-- **Status management** — Draft → Sent → Paid / Overdue lifecycle
-- **Overdue detection** — Daily cron job auto-marks overdue invoices
-- **Activity audit log** — Full timeline of invoice actions (created, updated, emailed, status changed)
-- **Shareable invoice links** — Token-based public URLs for client-facing invoices (no login required)
-- **Bulk operations** — Multi-select and bulk-delete invoices
-- **PDF export** — Download any invoice as a styled PDF
-- **Print-optimized CSS** — Clean print layout with hidden UI chrome
+**Invoice Management** — Full CRUD with auto-generated sequential invoice numbers, status lifecycle (Draft → Sent → Paid → Overdue), PDF export, bulk operations, and an activity audit trail for every invoice action.
 
-### AI-Powered (Google Gemini)
-- **Natural language invoice creation** — Describe an invoice in plain English, AI generates structured data
-- **Payment reminders** — Generate professional, friendly, or urgent reminder emails
-- **Business insights** — Revenue trends, payment health scores, client patterns, actionable recommendations
+**AI Integration** — Natural language invoice generation, smart payment reminder emails with adjustable tone, and business insights derived from historical invoice data — all powered by Google Gemini 2.5 Flash.
 
-### Authentication & Security
-- **JWT auth** — Access tokens (15 min) + refresh tokens (7 days, httpOnly cookie)
-- **Silent refresh** — Axios interceptor with mutex pattern to prevent race conditions on concurrent 401s
-- **Rate limiting** — Global (100/15 min), auth (15/15 min), AI (20/15 min)
-- **Input sanitization** — MongoDB injection prevention via `express-mongo-sanitize`
-- **Regex DoS protection** — User search input is escaped before regex compilation
-- **Sort field whitelist** — Only allowed fields can be used in query sort parameters
-- **Zod validation** — All routes (auth, invoices, profile, AI) validated with Zod schemas
-- **Env validation** — Required environment variables checked at startup with clear error messages
-- **Graceful shutdown** — SIGTERM/SIGINT handlers drain connections before exit
-- **Helmet** — Secure HTTP headers
-- **XSS-safe emails** — All user-interpolated values in HTML email templates are escaped
+**Authentication & Security** — JWT access/refresh token flow with httpOnly cookies, silent refresh using a mutex pattern to handle concurrent 401s, tiered rate limiting across global/auth/AI endpoints, Zod schema validation on all routes, MongoDB injection sanitization, and sort-field whitelisting.
 
-### Email Integration
-- **Send invoices** — Email styled HTML invoices directly to clients
-- **Send reminders** — Email AI-generated payment reminders
-- **Preview mode** — When SMTP is unconfigured, emails are logged to console for development
+**Dashboard & Analytics** — Revenue trends with Recharts, status breakdown, top clients, payment health scoring, and an AI-powered insights widget.
 
-### User Experience
-- **Dark mode** — System-preference-aware with manual toggle, persisted to localStorage
-- **Responsive design** — Mobile-first with collapsible sidebar drawer
-- **Skeleton loaders** — Shimmer placeholders during data fetches
-- **Empty states** — Helpful messaging with CTAs when no data exists
-- **Animated transitions** — Page and card animations via Framer Motion
-- **Dashboard** — Revenue charts, status breakdown, recent invoices, top clients, AI insights widget
-- **Error boundary** — Graceful error recovery UI instead of white-screen crashes
-- **404 page** — Custom not-found page with navigation options
-- **Redirect after login** — Protected routes remember and restore the originally requested URL
+**Email System** — Send styled HTML invoices and AI-generated reminders via SMTP, with graceful fallback to console logging when credentials aren't configured.
 
-### Performance
-- **Code splitting** — All page components lazy-loaded with `React.lazy` + `Suspense`
-- **Search debounce** — 400ms debounced search prevents excessive API calls
-- **Request timeout** — 30s axios timeout prevents hung requests
-- **Pagination cap** — Server enforces max 100 items per page
+**Automated Workflows** — Daily cron job scans for unpaid invoices past their due date and auto-transitions them to overdue status. Token-based public sharing for client-facing read-only invoice views.
 
-### Accessibility
-- **Semantic labels** — `aria-label` on all icon-only buttons (navigation, actions, toggles)
-- **Form association** — `htmlFor`/`id` pairing on all form inputs (Login, Signup, Profile)
-- **Live regions** — `role="alert"` on error messages, `role="status"` on spinners
-
----
-
-## Architecture
-
-```mermaid
-graph TB
-    subgraph Client["Client — React + Vite"]
-        UI[Pages & Components]
-        CTX[Auth & Theme Contexts]
-        SVC[Service Layer — Axios]
-        UI --> CTX
-        UI --> SVC
-    end
-
-    subgraph Server["Server — Express.js"]
-        MW[Middleware<br/>Auth · Rate Limit · Sanitize · Helmet]
-        RT[Routes<br/>Auth · Invoices · AI · Profile]
-        CTRL[Controllers]
-        MDL[Models — Mongoose]
-        VAL[Validators — Zod]
-        EMAIL[Email Service — Nodemailer]
-        MW --> RT --> CTRL
-        CTRL --> MDL
-        CTRL --> VAL
-        CTRL --> EMAIL
-    end
-
-    subgraph External["External Services"]
-        GEMINI[Google Gemini AI]
-        MONGO[(MongoDB Atlas)]
-        SMTP[SMTP Server]
-    end
-
-    SVC -->|REST API| MW
-    CTRL -->|Queries| MONGO
-    CTRL -->|Prompts| GEMINI
-    EMAIL -->|SMTP| SMTP
-```
-
-### Request Flow
-
-```
-Browser → Vite Dev Server (:5173)
-  → Proxy /api → Express (:5000)
-    → Helmet → CORS → Rate Limiter → JSON Parser → Mongo Sanitize
-      → Route → Auth Middleware → Zod Validation → Controller → Mongoose → MongoDB
-```
+**UX & Accessibility** — Dark mode with system preference detection, skeleton loaders, animated transitions (Framer Motion), error boundary with recovery UI, responsive mobile-first design with semantic ARIA labelling.
 
 ---
 
 ## Tech Stack
 
-| Layer      | Technology                                                        |
-| ---------- | ----------------------------------------------------------------- |
-| Frontend   | React 18, Vite 5, Tailwind CSS 3, Framer Motion, Recharts        |
-| Backend    | Node.js, Express 4, Mongoose 8, Zod, Helmet, express-rate-limit  |
-| Database   | MongoDB Atlas                                                     |
-| AI         | Google Gemini 2.0 Flash (`@google/generative-ai`)                |
-| Auth       | JWT (access + refresh tokens), bcryptjs                           |
-| Email      | Nodemailer                                                        |
-| PDF        | html2pdf.js (client-side)                                         |
-| Icons      | Lucide React                                                      |
+| Layer | Technologies |
+|-------|-------------|
+| Frontend | React 18, Vite 5, Tailwind CSS, Framer Motion, Recharts, Lucide React |
+| Backend | Node.js, Express, Mongoose, Zod, Helmet, express-rate-limit, node-cron |
+| Database | MongoDB Atlas |
+| AI | Google Gemini 2.5 Flash |
+| Auth | JWT (access + refresh), bcryptjs |
+| Email | Nodemailer |
+| Deployment | Vercel (client) + Render (server) |
 
 ---
 
-## Project Structure
+## Notable Technical Decisions
 
-```
-Invio/
-├── client/                   # React frontend
-│   ├── src/
-│   │   ├── components/
-│   │   │   ├── common/       # LoadingSpinner, SkeletonLoader, ProtectedRoute, ErrorBoundary,
-│   │   │   │                  #   AnimatedNumber, EmptyState, SuccessAnimation, Breadcrumbs, ActivityTimeline
-│   │   │   └── layout/       # Layout, Header (theme toggle), Sidebar
-│   │   ├── context/          # AuthContext, ThemeContext
-│   │   ├── pages/            # Dashboard, Invoices, InvoiceForm, InvoiceDetail,
-│   │   │                     #   Profile, AICreator, Login, Signup, NotFound, PublicInvoice
-│   │   ├── services/         # Axios API wrappers (auth, invoice, ai, profile)
-│   │   ├── utils/            # pdfExport, format (currency/dates), passwordStrength
-│   │   ├── App.jsx           # Routes + providers + lazy loading + error boundary
-│   │   └── index.css         # Tailwind layers + dark mode component classes
-│   ├── tailwind.config.js    # darkMode: 'class', custom primary palette
-│   └── vite.config.js        # Proxy /api → :5000
-│
-├── server/                   # Express backend
-│   ├── config/               # Centralized config from env vars + startup validation
-│   ├── controllers/          # auth, invoice, ai, profile controllers
-│   ├── middleware/            # auth (JWT verify), errorHandler
-│   ├── models/               # User, Invoice (with auto-number generation), AuditLog
-│   ├── routes/               # RESTful route definitions + public (no-auth) routes
-│   ├── services/             # emailService, geminiService, auditService, cronService
-│   ├── utils/                # AppError class, JWT token helpers
-│   ├── validators/           # Zod schemas (auth, invoice, profile, ai)
-│   └── server.js             # App entry — middleware chain + graceful shutdown
-│
-├── .env.example              # Environment variable template
-├── client/vercel.json        # Vercel SPA rewrite config
-└── README.md
-```
+1. **Race-Condition Safe Invoice Numbers** — Sequential `INV-YYYY-NNNN` generation uses a retry loop that catches MongoDB E11000 duplicate key errors from concurrent requests, retrying with the next number up to 3 times.
+
+2. **Mutex-Based Token Refresh** — When multiple API calls receive 401 simultaneously, a mutex ensures only one refresh request fires. All other calls queue and replay automatically once the single refresh completes — preventing token refresh storms.
+
+3. **Tiered Rate Limiting** — Three separate rate limit pools (global, auth, AI) protect different threat surfaces: infrastructure overload, brute force login, and expensive AI API abuse — each with appropriate thresholds.
+
+4. **Cross-Domain Cookie Auth** — Production deployment across Vercel (frontend) and Render (backend) required `sameSite: 'none'` + `secure: true` cookie configuration with reverse proxy trust, while keeping `strict` mode for local development.
+
+5. **Defensive Query Handling** — User search input is regex-escaped before compilation, sort parameters are validated against a whitelist, and pagination is capped server-side to prevent abuse through query string manipulation.
 
 ---
 
-## Getting Started
+## Setup
 
-### Prerequisites
-
-- **Node.js** ≥ 18
-- **MongoDB Atlas** account (or local MongoDB)
-- **Google Gemini API key** — [Get one free](https://aistudio.google.com/app/apikey)
-
-### 1. Clone & Install
+Requires Node.js ≥ 18, MongoDB, and a Google Gemini API key.
 
 ```bash
 git clone https://github.com/mokshlab/Invio.git
 cd Invio
 
-# Server
-cd server
-npm install
+cd server && npm install
+cd ../client && npm install
 
-# Client
-cd ../client
-npm install
-```
-
-### 2. Configure Environment
-
-```bash
-# Copy the template
-cp .env.example server/.env
-
-# Edit server/.env with your values:
-#   MONGO_URI        — your MongoDB connection string
-#   JWT_ACCESS_SECRET  — random secret (e.g. openssl rand -hex 32)
-#   JWT_REFRESH_SECRET — random secret
-#   GEMINI_API_KEY     — from Google AI Studio
-#   SMTP_*           — optional, for email sending
-```
-
-### 3. Run Development Servers
-
-```bash
-# Terminal 1 — Server
-cd server
-npm run dev          # nodemon → http://localhost:5000
-
-# Terminal 2 — Client
-cd client
-npm run dev          # vite → http://localhost:5173
-```
-
-### 4. Build for Production
-
-```bash
-cd client
-npm run build        # outputs to client/dist/
+# Configure server/.env (see .env.example)
+# Run server: cd server && npm run dev
+# Run client: cd client && npm run dev
 ```
 
 ---
 
-## API Endpoints
+## License
 
-### Auth (`/api/auth`)
-| Method | Path         | Description              | Rate Limit   |
-| ------ | ------------ | ------------------------ | ------------ |
-| POST   | `/signup`    | Register new user        | 15 / 15 min  |
-| POST   | `/login`     | Login, returns tokens    | 15 / 15 min  |
-| POST   | `/refresh`   | Refresh access token     | 15 / 15 min  |
-| POST   | `/logout`    | Clears refresh cookie    | 15 / 15 min  |
-
-### Invoices (`/api/invoices`) — 🔒 Authenticated
-| Method | Path              | Description                        |
-| ------ | ----------------- | ---------------------------------- |
-| GET    | `/`               | List invoices (filter, search, paginate) |
-| GET    | `/stats`          | Dashboard statistics               |
-| GET    | `/email-status`   | Check if SMTP is configured        |
-| GET    | `/:id`            | Get invoice by ID                  |
-| POST   | `/`               | Create invoice (auto-generates number) |
-| PUT    | `/:id`            | Update invoice (including status)  |
-| DELETE | `/:id`            | Delete invoice                     |
-| POST   | `/:id/send`       | Send invoice via email             |
-| GET    | `/:id/activity`   | Get invoice activity log           |
-| POST   | `/bulk-delete`    | Bulk-delete invoices by IDs        |
-
-### AI (`/api/ai`) — 🔒 Authenticated
-| Method | Path              | Description                    | Rate Limit   |
-| ------ | ----------------- | ------------------------------ | ------------ |
-| POST   | `/generate-invoice`  | Generate invoice from text     | 20 / 15 min  |
-| POST   | `/payment-reminder`  | Generate payment reminder      | 20 / 15 min  |
-| GET    | `/insights`          | Generate business insights     | 20 / 15 min  |
-| POST   | `/send-reminder`     | Send reminder email            | 20 / 15 min  |
-
-### Public (`/api/public`) — No Auth
-| Method | Path                    | Description                       |
-| ------ | ----------------------- | --------------------------------- |
-| GET    | `/invoices/:token`      | View shared invoice (read-only)   |
-
-### Profile (`/api/profile`) — 🔒 Authenticated
-| Method | Path         | Description              |
-| ------ | ------------ | ------------------------ |
-| GET    | `/`          | Get profile              |
-| PUT    | `/`          | Update profile           |
-| PUT    | `/password`  | Change password          |
-
----
-
-## Environment Variables
-
-| Variable             | Required | Default                         | Description                               |
-| -------------------- | -------- | ------------------------------- | ----------------------------------------- |
-| `PORT`               | No       | `5000`                          | Server port                               |
-| `NODE_ENV`           | No       | `development`                   | Environment                               |
-| `MONGO_URI`          | **Yes**  | —                               | MongoDB connection string                 |
-| `JWT_ACCESS_SECRET`  | **Yes**  | —                               | Secret for signing access tokens          |
-| `JWT_REFRESH_SECRET` | **Yes**  | —                               | Secret for signing refresh tokens         |
-| `CLIENT_URL`         | No       | `http://localhost:5173`         | CORS origin                               |
-| `GEMINI_API_KEY`     | No       | —                               | Google Gemini API key (AI features disabled without it) |
-| `SMTP_HOST`          | No       | —                               | SMTP server host                          |
-| `SMTP_PORT`          | No       | `587`                           | SMTP server port                          |
-| `SMTP_USER`          | No       | —                               | SMTP username                             |
-| `SMTP_PASS`          | No       | —                               | SMTP password / app password              |
-| `SMTP_FROM`          | No       | `"Invio <noreply@invio.app>"`   | Sender address                            |
-
----
-
-## Key Design Decisions
-
-1. **Invoice number retry loop** — `Invoice.createWithRetry()` handles race conditions where two concurrent requests might generate the same sequential number. Catches MongoDB E11000 duplicate key errors and retries up to 3 times.
-
-2. **Tiered rate limiting** — Global API limit protects infrastructure. Stricter limits on auth endpoints prevent brute force. AI endpoints have their own pool to prevent abuse of expensive Gemini API calls.
-
-3. **Email preview mode** — When SMTP credentials are not configured, the email service logs to console instead of throwing errors. This allows full development without an email provider.
-
-4. **Silent token refresh with mutex** — Axios response interceptor detects 401 errors. A mutex pattern ensures only one refresh request fires at a time — concurrent 401s are queued and replayed once the single refresh completes.
-
-5. **Dark mode via Tailwind `class` strategy** — Allows manual toggle independent of OS preference while respecting system preference on first visit. Theme state persisted to localStorage.
-
-6. **Env validation at startup** — Missing required env vars (`MONGO_URI`, `JWT_ACCESS_SECRET`, `JWT_REFRESH_SECRET`) cause immediate exit with a clear error message rather than cryptic runtime failures.
-
-7. **Sort field whitelist** — Query sort parameters are validated against an allowed list, preventing arbitrary field traversal or injection via the sort query string.
-
-8. **Code splitting** — All page components are lazy-loaded via `React.lazy` + `Suspense`, reducing initial bundle size and improving first paint time.
-
-9. **Shared utility modules** — `formatCurrency`, `formatDate`, and `passwordStrength` are extracted into `client/src/utils/` to eliminate duplication across 6+ components.
-
-10. **Error boundary + 404** — React `ErrorBoundary` wraps the entire route tree to catch render errors gracefully. A custom 404 page replaces the generic redirect for unknown routes.
+MIT
 
 ---
 
