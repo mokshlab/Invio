@@ -10,7 +10,7 @@ import axios from 'axios';
 import { Shield, Printer, AlertTriangle, Loader } from 'lucide-react';
 
 const api = axios.create({
-  baseURL: import.meta.env.VITE_API_URL || 'http://localhost:5000/api',
+  baseURL: import.meta.env.VITE_API_URL || '/api',
 });
 
 const STATUS_STYLES = {
