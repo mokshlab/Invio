@@ -3,44 +3,61 @@ import config from '../config/index.js';
 
 /**
  * Gemini AI Service — centralised prompt engineering & API calls.
- * Uses Gemini 2.5 Flash model for fast, high-quality generation.
+ * Tries primary model first, falls back to alternative on 503/overload.
  */
 
 let genAI = null;
 let model = null;
 
-const getModel = () => {
-  if (!model) {
+const MODELS = ['gemini-2.5-flash', 'gemini-2.5-flash-lite'];
+
+const getModel = (modelName) => {
+  if (!genAI) {
     if (!config.geminiApiKey || config.geminiApiKey === 'your_gemini_api_key_here') {
       throw new Error(
         'GEMINI_API_KEY is not configured. Add a valid key to server/.env'
       );
     }
     genAI = new GoogleGenerativeAI(config.geminiApiKey);
-    model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
   }
-  return model;
+  return genAI.getGenerativeModel({ model: modelName || MODELS[0] });
+};
+
+// ─── Helper: call Gemini with automatic fallback ───
+const callWithFallback = async (promptFn) => {
+  for (const modelName of MODELS) {
+    try {
+      const ai = getModel(modelName);
+      return await promptFn(ai);
+    } catch (err) {
+      const isOverload = err.status === 503 || err.message?.includes('503') || err.message?.includes('high demand');
+      if (isOverload && modelName !== MODELS[MODELS.length - 1]) {
+        console.warn(`Model ${modelName} overloaded, falling back to next...`);
+        continue;
+      }
+      throw err;
+    }
+  }
 };
 
 // ─── Helper: call Gemini and parse JSON from response ───
 const generateJSON = async (prompt) => {
-  const ai = getModel();
-  const result = await ai.generateContent(prompt);
-  const text = result.response.text();
-
-  // Strip markdown code fences if present
-  const cleaned = text
-    .replace(/```json\s*/gi, '')
-    .replace(/```\s*/g, '')
-    .trim();
-
-  return JSON.parse(cleaned);
+  return callWithFallback(async (ai) => {
+    const result = await ai.generateContent(prompt);
+    const text = result.response.text();
+    const cleaned = text
+      .replace(/```json\s*/gi, '')
+      .replace(/```\s*/g, '')
+      .trim();
+    return JSON.parse(cleaned);
+  });
 };
 
 const generateText = async (prompt) => {
-  const ai = getModel();
-  const result = await ai.generateContent(prompt);
-  return result.response.text().trim();
+  return callWithFallback(async (ai) => {
+    const result = await ai.generateContent(prompt);
+    return result.response.text().trim();
+  });
 };
 
 // ═══════════════════════════════════════════════════════════
