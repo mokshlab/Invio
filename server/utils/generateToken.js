@@ -25,10 +25,11 @@ export const generateRefreshToken = (userId) => {
  * Set the refresh token as a secure, httpOnly cookie.
  */
 export const setRefreshTokenCookie = (res, token) => {
+  const isProduction = config.nodeEnv === 'production';
   res.cookie('refreshToken', token, {
     httpOnly: true,
-    secure: config.nodeEnv === 'production',
-    sameSite: 'strict',
+    secure: isProduction,
+    sameSite: isProduction ? 'none' : 'strict',
     maxAge: 7 * 24 * 60 * 60 * 1000, // 7 days
   });
 };
