@@ -29,13 +29,16 @@ app.use(
   cors({
     origin: config.clientUrl,
     credentials: true,
+    methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization'],
   })
 );
+app.set('trust proxy', 1);
 
-// Global rate limit — 100 requests per 15 min per IP
+// Global rate limit — 200 requests per 15 min per IP
 const globalLimiter = rateLimit({
   windowMs: 15 * 60 * 1000,
-  max: 100,
+  max: 200,
   standardHeaders: true,
   legacyHeaders: false,
   message: { message: 'Too many requests, please try again later.' },
@@ -71,6 +74,8 @@ app.use(mongoSanitize());
 // --------------- Request Logging ---------------
 if (config.nodeEnv === 'development') {
   app.use(morgan('dev'));
+} else {
+  app.use(morgan('combined'));
 }
 
 // --------------- API Routes ---------------
