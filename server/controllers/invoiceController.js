@@ -137,6 +137,24 @@ export const updateInvoice = async (req, res, next) => {
     // Capture previous status before mutating — needed for the audit log
     const prevStatus = invoice.status;
 
+    // Enforce valid status transitions
+    if (req.body.status && req.body.status !== prevStatus) {
+      const ALLOWED_TRANSITIONS = {
+        draft:   ['sent'],
+        sent:    ['paid', 'overdue'],
+        overdue: ['paid'],
+        paid:    [],
+      };
+
+      const allowed = ALLOWED_TRANSITIONS[prevStatus] || [];
+      if (!allowed.includes(req.body.status)) {
+        throw new AppError(
+          `Cannot transition from '${prevStatus}' to '${req.body.status}'`,
+          400
+        );
+      }
+    }
+
     // Update allowed fields
     const allowedFields = [
       'clientName', 'clientEmail', 'clientPhone', 'clientAddress',

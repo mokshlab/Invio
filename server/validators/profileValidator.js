@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { validate } from './authValidator.js';
+import { validate } from '../middleware/validate.js';
 
 export const updateProfileSchema = z.object({
   name: z.string().trim().min(2, 'Name must be at least 2 characters').max(50).optional(),
