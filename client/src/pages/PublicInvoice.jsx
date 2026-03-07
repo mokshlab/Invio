@@ -65,8 +65,8 @@ const PublicInvoice = () => {
     );
   }
 
-  const invoiceDate = invoice.invoiceDate
-    ? new Date(invoice.invoiceDate).toLocaleDateString('en-US', {
+  const invoiceDate = invoice.issueDate
+    ? new Date(invoice.issueDate).toLocaleDateString('en-US', {
         year: 'numeric',
         month: 'long',
         day: 'numeric',
@@ -109,13 +109,8 @@ const PublicInvoice = () => {
         <div className="flex items-start justify-between mb-8">
           <div>
             <h1 className="text-2xl font-bold text-gray-900 dark:text-gray-100">
-              {invoice.businessName || 'Invoice'}
+              Invoice
             </h1>
-            {invoice.businessEmail && (
-              <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
-                {invoice.businessEmail}
-              </p>
-            )}
           </div>
           <div className="text-right">
             <p className="text-xs text-gray-400 dark:text-gray-500 uppercase tracking-wider mb-1">
