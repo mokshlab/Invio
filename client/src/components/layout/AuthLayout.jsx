@@ -78,29 +78,6 @@ const AuthLayout = ({ headline, headlineAccent, subtitle, children }) => (
             ))}
           </div>
         </div>
-
-        {/* Bottom stats */}
-        <motion.div
-          initial={{ opacity: 0 }}
-          animate={{ opacity: 1 }}
-          transition={{ duration: 0.5, delay: 0.7 }}
-          className="flex items-center gap-8 text-sm"
-        >
-          <div>
-            <p className="text-white font-semibold">AI-Powered</p>
-            <p className="text-gray-500">Google Gemini</p>
-          </div>
-          <div className="w-px h-8 bg-gray-800" />
-          <div>
-            <p className="text-white font-semibold">Full-Stack</p>
-            <p className="text-gray-500">MERN + Tailwind</p>
-          </div>
-          <div className="w-px h-8 bg-gray-800" />
-          <div>
-            <p className="text-white font-semibold">Production</p>
-            <p className="text-gray-500">Vercel + Render</p>
-          </div>
-        </motion.div>
       </div>
     </div>
 
