@@ -3,14 +3,12 @@ node_modules/
 
 # Environment variables
 .env
-.env.local
-.env.production
-.env.*.local
+.env.*
+*.env
 
 # Build output
 dist/
 build/
-*.tsbuildinfo
 
 # OS generated files
 .DS_Store
@@ -27,14 +25,11 @@ desktop.ini
 # Logs
 *.log
 npm-debug.log*
-yarn-debug.log*
-yarn-error.log*
 
 # Coverage & test output
 coverage/
 .nyc_output/
 
-# Miscellaneous
-*.tgz
-.cache/
+# Deployment
 .vercel/
+.cache/
