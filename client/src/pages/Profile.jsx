@@ -150,7 +150,7 @@ const Profile = () => {
                 value={form.name}
                 onChange={handleChange}
                 className="input-field"
-                placeholder="John Doe"
+                placeholder="Your Name"
                 required
               />
             </div>

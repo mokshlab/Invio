@@ -22,7 +22,8 @@ const AuthLayout = ({ headline, headlineAccent, subtitle, children }) => (
       <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-primary-500/10 rounded-full blur-[120px]" />
       <div className="absolute bottom-0 left-0 w-[400px] h-[400px] bg-violet-500/8 rounded-full blur-[100px]" />
 
-      <div className="relative z-10 flex flex-col justify-between py-12 px-16 w-full">
+      <div className="relative z-10 flex flex-col gap-y-8 py-8 px-8 w-full">
+      {/* relative z-10 flex flex-col justify-between py-12 px-16 w-full */}
         {/* Logo */}
         <motion.div
           initial={{ opacity: 0 }}
@@ -82,7 +83,8 @@ const AuthLayout = ({ headline, headlineAccent, subtitle, children }) => (
     </div>
 
     {/* -------- Right Panel — Form Content -------- */}
-    <div className="w-full lg:w-[45%] flex items-center justify-center p-8 sm:p-12 bg-white dark:bg-gray-950">
+    <div className="w-full lg:w-[45%] flex items-center justify-center pt-4 pb-4 px-8 sm:pt-6 sm:pb-6 sm:px-12 bg-white dark:bg-gray-950">
+    {/* w-full lg:w-[45%] flex items-center justify-center p-8 sm:p-12 bg-white dark:bg-gray-950 */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
         animate={{ opacity: 1, y: 0 }}

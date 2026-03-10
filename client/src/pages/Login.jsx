@@ -95,7 +95,7 @@ const Login = () => {
               className={`input-field pl-11 ${
                 errors.email ? 'border-red-300 dark:border-red-700 focus:ring-red-500' : ''
               }`}
-              placeholder="you@example.com"
+              placeholder="example@mail.com"
               autoComplete="email"
             />
           </div>

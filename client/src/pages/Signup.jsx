@@ -119,7 +119,7 @@ const Signup = () => {
               className={`input-field pl-11 ${
                 errors.name ? 'border-red-300 dark:border-red-700 focus:ring-red-500' : ''
               }`}
-              placeholder="John Doe"
+              placeholder="Your Name"
               autoComplete="name"
             />
           </div>
@@ -144,7 +144,7 @@ const Signup = () => {
               className={`input-field pl-11 ${
                 errors.email ? 'border-red-300 dark:border-red-700 focus:ring-red-500' : ''
               }`}
-              placeholder="you@example.com"
+              placeholder="example@mail.com"
               autoComplete="email"
             />
           </div>
@@ -257,7 +257,7 @@ const Signup = () => {
         </button>
       </form>
 
-      <div className="mt-7 pt-5 border-t border-gray-100 dark:border-gray-800">
+      <div className="mt-4 pt-3 border-t border-gray-100 dark:border-gray-800">
         <p className="text-center text-sm text-gray-500 dark:text-gray-400">
           Already have an account?{' '}
           <Link
